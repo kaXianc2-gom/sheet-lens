@@ -1,0 +1,14 @@
+# 构建产物
+*.html
+!index.html
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# 临时文件
+*.tmp
+*~
+node_modules/
+package*.json

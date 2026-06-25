@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SheetLens — 表格数据筛选工具</title>
+<style>
+
+/* ===== 全局 ===== */
+:root {
+  --bg: #f5f6fa;
+  --card: #fff;
+  --primary: #1a5276;
+  --accent: #2980b9;
+  --border: #dce1e8;
+  --text: #2c3e50;
+  --muted: #7f8c8d;
+  --success: #27ae60;
+  --warn: #e67e22;
+  --radius: 10px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ===== 头部 ===== */
+.header {
+  background: linear-gradient(135deg, var(--primary), #1a6d9f);
+  color: #fff;
+  padding: 18px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.header h1 { font-size: 22px; font-weight: 600; letter-spacing: 1px; }
+.header .sub { font-size: 13px; opacity: 0.85; }
+
+/* ===== 主布局 ===== */
+.main { max-width: 1400px; margin: 0 auto; padding: 20px 24px; }
+
+/* ===== 筛选面板 ===== */
+.filter-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.filter-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+.filter-group label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.filter-group select,
+.filter-group input {
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--text);
+  background: #fafbfc;
+  min-width: 140px;
+  transition: border-color 0.2s;
+}
+.filter-group select:focus,
+.filter-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: #fff;
+}
+.filter-group input { min-width: 200px; }
+
+.btn {
+  padding: 9px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #2471a3; }
+.btn-outline { background: #fff; color: var(--accent); border: 1.5px solid var(--accent); }
+.btn-outline:hover { background: #eaf2f8; }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { background: #229954; }
+
+/* ===== 统计条 ===== */
+.stats-bar {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 24px;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.stat-item { display: flex; align-items: center; gap: 8px; }
+.stat-num { font-size: 26px; font-weight: 700; color: var(--primary); }
+.stat-label { font-size: 13px; color: var(--muted); }
+
+/* ===== 标签切换 ===== */
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0;
+  background: var(--card);
+  border-radius: var(--radius) var(--radius) 0 0;
+  box-shadow: var(--shadow);
+}
+.tab-btn {
+  padding: 12px 28px;
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+.tab-btn:hover { color: var(--accent); }
+
+/* ===== 内容区 ===== */
+.content-card {
+  background: var(--card);
+  border-radius: 0 0 var(--radius) var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 24px;
+  min-height: 480px;
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.chart-box { width: 100%; height: 480px; }
+.chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.chart-half { height: 360px; }
+
+/* ===== 表格 ===== */
+.table-wrap { overflow-x: auto; max-height: 520px; overflow-y: auto; }
+.table-wrap table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table-wrap thead { position: sticky; top: 0; z-index: 1; }
+.table-wrap th {
+  background: var(--primary);
+  color: #fff;
+  padding: 10px 10px;
+  text-align: left;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+.table-wrap th:hover { background: #1a6d9f; }
+.table-wrap td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.table-wrap tr:hover td { background: #eef5fb; }
+.table-wrap .sort-arrow { font-size: 11px; margin-left: 3px; }
+
+/* ===== 底部 ===== */
+.footer {
+  text-align: center;
+  padding: 14px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+  .filter-row { flex-direction: column; }
+  .chart-row { grid-template-columns: 1fr; }
+  .header h1 { font-size: 18px; }
+}
+
+
+.upload-zone {
+  background: #f0f7ff; border: 2px dashed #2980b9; border-radius: 8px;
+  padding: 12px 20px; margin-bottom: 16px; display: flex; align-items: center;
+  gap: 16px; flex-wrap: wrap; transition: all 0.2s; cursor: pointer;
+}
+.upload-zone:hover { border-color: #1a5276; background: #e6f0fa; }
+.upload-zone.dragover { border-color: #27ae60; background: #eafaf1; }
+.upload-zone .upload-icon { font-size: 28px; }
+.upload-zone .upload-text { font-size: 13px; color: #555; line-height: 1.5; }
+.upload-zone .upload-hint { font-size: 11px; color: #999; }
+.upload-zone input[type=file] { display: none; }
+.data-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 12px;
+  font-size: 12px; font-weight: 600;
+}
+.data-badge.builtin { background: #fff3cd; color: #856404; }
+.data-badge.user { background: #d4edda; color: #155724; }
+
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <h1>🏛 SheetLens — 表格数据筛选工具</h1>
+    <span class="data-badge builtin" id="dataBadge">📂 请上传数据</span>
+  </div>
+  <div class="sub">拖拽上传 Excel | 自动识别列名 | 多维度筛选</div>
+</div>
+<div class="main">
+
+<!-- 上传区 -->
+<div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+  <div class="upload-icon">📂</div>
+  <div>
+    <div class="upload-text"><b>拖拽 Excel 文件到此处</b> 或 点击选择文件</div>
+    <div class="upload-hint">支持 .xlsx / .xls 格式 | 自动识别国考29列/省考标准格式 | 可多文件拖拽合并分析</div>
+  </div>
+  <input type="file" id="fileInput" accept=".xlsx" multiple onchange="handleFiles(this.files)">
+</div>
+
+<div class="filter-card">
+  <div class="filter-row">
+    <div class="filter-group"><label>📍 目标省份</label><select id="selProvince"><option value="">全部省份</option></select></div>
+    <div class="filter-group"><label>📚 专业关键词</label><input id="selMajor" type="text" placeholder="如：政治学、法学、计算机..."></div>
+    <div class="filter-group"><label>🎓 学历要求</label>
+      <select id="selEdu"><option value="">不限</option><option value="本科">本科及以上</option><option value="仅限本科">仅限本科</option><option value="硕士">硕士研究生及以上</option><option value="仅限硕士">仅限硕士研究生</option><option value="博士">博士研究生</option><option value="大专">大专及以上</option></select></div>
+    <div class="filter-group"><label>🏛 政治面貌</label>
+      <select id="selParty"><option value="">不限</option><option value="党员">中共党员</option><option value="不限">无限制</option></select></div>
+    <div class="filter-group"><label>📅 基层经验</label>
+      <select id="selExp"><option value="">不限</option><option value="无限制">无限制</option><option value="二年">二年及以上</option><option value="三年">三年及以上</option></select></div>
+    <button class="btn btn-primary" onclick="applyFilter()">🔍 筛选岗位</button>
+    <button class="btn btn-outline" onclick="resetFilter()">↻ 重置</button>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item"><span class="stat-num" id="statPos">0</span><span class="stat-label">匹配岗位</span></div>
+  <div class="stat-item"><span class="stat-num" id="statRec">—</span><span class="stat-label">招录总人数</span></div>
+  <div class="stat-item"><span class="stat-num" id="statProv">0</span><span class="stat-label">覆盖省份</span></div>
+  <div class="stat-item"><span class="stat-num" id="statYear">2025</span><span class="stat-label">数据年份</span></div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('map')">🗺 省份地图</button>
+  <button class="tab-btn" onclick="switchTab('trend')">📈 趋势分析</button>
+  <button class="tab-btn" onclick="switchTab('table')">📋 岗位列表</button>
+</div>
+<div class="content-card">
+  <div class="tab-content active" id="tab-map"><div class="chart-box" id="chartMap"></div></div>
+  <div class="tab-content" id="tab-trend">
+    <div class="chart-row"><div class="chart-half" id="chartTrend1"></div><div class="chart-half" id="chartTrend2"></div></div>
+    <div class="chart-row" style="margin-top:16px"><div class="chart-half" id="chartPie1"></div><div class="chart-half" id="chartPie2"></div></div>
+  </div>
+  <div class="tab-content" id="tab-table">
+    <div style="margin-bottom:12px;display:flex;gap:8px"><span id="tableInfo"></span><div style="flex:1"></div><button class="btn btn-success" onclick="exportCSV()">📥 导出 CSV</button></div>
+    <div class="table-wrap"><table><thead><tr><th data-sort="d">部门 ▾</th><th data-sort="t">职位名称 ▾</th><th data-sort="l">机构层级 ▾</th><th data-sort="e">学历要求 ▾</th><th data-sort="p">政治面貌 ▾</th><th data-sort="x">基层经验 ▾</th><th data-sort="c">招考人数 ▾</th><th data-sort="r">省份 ▾</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+  </div>
+</div>
+</div>
+<div class="footer">就绪 | 请上传 Excel 职位表开始筛选 | <span id="chartStatus">等待数据...</span></div>
+
+<script>var DATA={positions:[],provinceStats:{},trends:null,meta:{totalPositions:0,totalProvinces:0,dataYear:"",generatedAt:""}};</script>
+
+<!-- SheetJS: Excel 读取（异步加载，不阻塞页面） -->
+<script async src="https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" onerror="document.getElementById('uploadZone').innerHTML='<div class=upload-icon>⚠️</div><div><div class=upload-text>Excel 读取组件加载失败</div><div class=upload-hint>请检查网络后刷新重试，或直接使用内置2025年数据</div></div>'"></script>
+
+<script>
+var PM={"北京":"北京市","上海":"上海市","天津":"天津市","重庆":"重庆市","广东":"广东省","山东":"山东省","江苏":"江苏省","浙江":"浙江省","河南":"河南省","河北":"河北省","湖南":"湖南省","湖北":"湖北省","四川":"四川省","福建":"福建省","安徽":"安徽省","江西":"江西省","辽宁":"辽宁省","陕西":"陕西省","云南":"云南省","贵州":"贵州省","甘肃":"甘肃省","青海":"青海省","海南":"海南省","山西":"山西省","吉林":"吉林省","黑龙江":"黑龙江省","广西":"广西壮族自治区","内蒙古":"内蒙古自治区","宁夏":"宁夏回族自治区","新疆":"新疆维吾尔自治区","西藏":"西藏自治区"};
+var sortKey=null,sortAsc=true,filteredData=[],mapChart=null,chinaGeoLoaded=false,trendCharts={};
+var provSum={}, userDataLoaded=false;
+
+function rebuildProvSum(){
+  provSum={};
+  DATA.positions.forEach(function(r){if(!provSum[r.r])provSum[r.r]={total:0,politic:0};provSum[r.r].total++;if(/政治学|国际政治|国际关系|外交学/.test(r.m))provSum[r.r].politic++})
+}
+
+function rebuildProvinceStats(){
+  var ps={};
+  DATA.positions.forEach(function(r){var p=r.r;if(!ps[p])ps[p]={total:0,politic:0};ps[p].total++;if(/政治学|国际政治|国际关系|外交学/.test(r.m))ps[p].politic++});
+  DATA.provinceStats=ps
+}
+
+function rebuildDropdown(){
+  var sel=document.getElementById("selProvince");
+  sel.innerHTML='<option value="">全部省份</option>';
+  Object.keys(DATA.provinceStats).sort().forEach(function(p){var o=document.createElement("option");o.value=p;o.textContent=p+" ("+DATA.provinceStats[p].total+"岗)";sel.appendChild(o)})
+}
+
+// ===== Excel 上传处理 =====
+function handleFiles(files){
+  if(!files||!files.length)return;
+  if(typeof XLSX==="undefined"){alert("Excel 读取组件(XLSX)尚未加载，请稍后重试");return}
+  var allRows=[], totalFiles=files.length, loaded=0;
+
+  Array.from(files).forEach(function(file){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        var wb=XLSX.read(e.target.result,{type:"array"});
+        var ws=wb.Sheets[wb.SheetNames[0]];
+        var rows=XLSX.utils.sheet_to_json(ws,{defval:""});
+        if(!rows.length){loaded++;if(loaded===totalFiles)finishUpload(allRows);return}
+
+        // 自动识别列名(第一行是表头)
+        var headers=Object.keys(rows[0]);
+
+        // 智能表头探测：检测匹配列的唯一性(说明行会让所有关键词匹配到同一列)
+        var testKws=["部门名称","招考职位","职位名称","专业","学历","工作地点","地区","省份"];
+        var matched={},uniqueCols={};
+        testKws.forEach(function(kw){
+          for(var i=0;i<headers.length;i++){if(headers[i].includes(kw)){matched[kw]=headers[i];break}}
+        });
+        Object.values(matched).forEach(function(v){uniqueCols[v]=true});
+        if(Object.keys(matched).length<3||Object.keys(uniqueCols).length<3){
+          rows=XLSX.utils.sheet_to_json(ws,{defval:"",range:1});
+          if(rows.length>0){headers=Object.keys(rows[0]);console.warn(file.name+": 自动跳过说明行，使用第二行作为表头")}
+        }
+
+        // 构建列索引映射: 列名→索引
+        var colIdx={};
+        headers.forEach(function(h,i){colIdx[h]=i});
+
+        // 用关键词匹配关键列
+        function findCol(keywords){
+          for(var i=0;i<headers.length;i++){
+            var h=headers[i];
+            for(var k=0;k<keywords.length;k++){if(h.includes(keywords[k]))return h}
+          }
+          return null
+        }
+
+        var mDept=findCol(["部门名称"]),
+            mTitle=findCol(["招考职位","职位名称"]),
+            mLevel=findCol(["机构层级"]),
+            mAttr=findCol(["职位属性"]),
+            mMajor=findCol(["专业"]),
+            mEdu=findCol(["学历"]),
+            mParty=findCol(["政治面貌"]),
+            mExp=findCol(["基层工作最低年限","基层经验"]),
+            mCount=findCol(["招考人数","招录人数"]),
+            mRegion=findCol(["地区","省份"]);
+
+        if(!mMajor){console.warn(file.name+": 未找到「专业」列");loaded++;return}
+
+        // 从工作地点推断省份
+        var mLocation=findCol(["工作地点"]);
+
+        var fileRows=0;
+        rows.forEach(function(row){
+          var region=String(row[mRegion]||"");
+          // 如果地区列为空，尝试从工作地点提取省份
+          if(!region&&mLocation){
+            var loc=String(row[mLocation]||"");
+            var pm=Object.keys(PM).find(function(k){return loc.includes(k)});
+            if(pm)region=pm
+          }
+          if(!region)return; // 跳过无法识别省份的行
+
+          var count=parseInt(row[mCount])||1;
+          allRows.push({
+            d:String(row[mDept]||""),
+            t:String(row[mTitle]||""),
+            l:String(row[mLevel]||""),
+            a:String(row[mAttr]||""),
+            m:String(row[mMajor]||""),
+            e:String(row[mEdu]||""),
+            p:String(row[mParty]||""),
+            x:String(row[mExp]||""),
+            c:count,
+            r:region
+          });
+          fileRows++;
+        });
+        console.log(file.name+": 解析 "+fileRows+" 行");
+      }catch(err){console.error(file.name+": 解析失败",err)}
+      loaded++;
+      if(loaded===totalFiles)finishUpload(allRows)
+    };
+    reader.readAsArrayBuffer(file)
+  })
+}
+
+function finishUpload(allRows){
+  if(!allRows.length){alert("未能从文件中解析出有效数据。请确认文件格式与国考/省考职位表一致。");return}
+  DATA.positions=allRows;
+  DATA.meta={totalPositions:allRows.length,totalProvinces:0,dataYear:"用户数据",generatedAt:new Date().toISOString().slice(0,10)};
+  rebuildProvinceStats();rebuildProvSum();rebuildDropdown();
+  userDataLoaded=true;
+
+  document.getElementById("dataBadge").textContent="📎 用户数据 ("+allRows.length+"岗)";
+  document.getElementById("dataBadge").className="data-badge user";
+  document.getElementById("statYear").textContent="上传";
+  document.getElementById("footerYear").textContent="用户上传";
+  document.getElementById("footerProv").textContent=Object.keys(DATA.provinceStats).length;
+  document.getElementById("statProv").textContent=Object.keys(DATA.provinceStats).length;
+  document.getElementById("statPos").textContent=allRows.length;
+
+  filteredData=DATA.positions;sortKey=null;updateStats();renderTable();
+  // 重新渲染地图（如果 ECharts 已加载）
+  if(mapChart){mapChart.dispose();mapChart=null;chinaGeoLoaded=false}
+  if(typeof echarts!=="undefined")renderMap();
+  // 销毁趋势缓存以便重建
+  Object.values(trendCharts).forEach(function(c){if(c&&!c.isDisposed())c.dispose()});
+  trendCharts={};
+}
+
+// ===== 拖拽支持 =====
+var uz=document.getElementById("uploadZone");
+uz.addEventListener("dragover",function(e){e.preventDefault();uz.classList.add("dragover")});
+uz.addEventListener("dragleave",function(){uz.classList.remove("dragover")});
+uz.addEventListener("drop",function(e){e.preventDefault();uz.classList.remove("dragover");handleFiles(e.dataTransfer.files)});
+
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+
+function updateStats(){
+  document.getElementById("statPos").textContent=filteredData.length;
+  document.getElementById("statRec").textContent=(filteredData.length?filteredData.reduce(function(s,r){return s+r.c},0)+"人":"—");
+  document.getElementById("statProv").textContent=new Set(filteredData.map(function(r){return r.r})).size
+}
+
+function renderTable(){
+  var d=[].concat(filteredData);
+  if(!d.length){document.getElementById("tableInfo").textContent="暂无数据，请上传 Excel 职位表";document.getElementById("tableBody").innerHTML="<tr><td colspan=8 style='text-align:center;padding:60px;color:#999'>📂 请拖拽 Excel 文件到上方上传区<br><small>支持国考/省考标准格式</small></td></tr>";return}
+  if(sortKey){d.sort(function(a,b){var va=sortKey==="c"?Number(a[sortKey]):String(a[sortKey]),vb=sortKey==="c"?Number(b[sortKey]):String(b[sortKey]);return va<vb?sortAsc?-1:1:va>vb?sortAsc?1:-1:0})}
+  var disp=d.slice(0,500);
+  document.getElementById("tableInfo").textContent="显示 "+disp.length+" / "+filteredData.length+" 条"+(filteredData.length>500?"（前500条）":"");
+  document.getElementById("tableBody").innerHTML=disp.map(function(r){return "<tr><td>"+esc(r.d)+"</td><td>"+esc(r.t)+"</td><td>"+esc(r.l)+"</td><td>"+esc(r.e)+"</td><td>"+(esc(r.p)||"不限")+"</td><td>"+(esc(r.x)||"无限制")+"</td><td>"+r.c+"</td><td>"+esc(r.r)+"</td></tr>"}).join("")
+}
+
+function applyFilter(){
+  var p=document.getElementById("selProvince").value,m=document.getElementById("selMajor").value.trim(),e=document.getElementById("selEdu").value,py=document.getElementById("selParty").value,ex=document.getElementById("selExp").value;
+  var kw=m?m.split(/[,，\s]+/).filter(Boolean):[];
+  filteredData=DATA.positions.filter(function(r){
+    if(p&&r.r!==p)return false;
+    if(kw.length&&!kw.some(function(k){return r.m.includes(k)}))return false;
+    if(e){if(e==="仅限本科"){if(!r.e.includes("仅限本科")&&!r.e.includes("限本科"))return false}else if(e==="仅限硕士"){if(!r.e.includes("仅限硕士")&&!r.e.includes("限硕士"))return false}else{var b=e.replace("仅限","");if(!r.e.includes(b))return false;if(r.e.includes("仅限")&&!r.e.includes(e))return false}}
+    if(py){if(py==="党员"){if(!r.p.includes("党员"))return false}else if(py==="不限"){if(r.p&&(r.p.includes("党员")||r.p.includes("团员")))return false}}
+    if(ex){if(ex==="无限制"){if(r.x&&r.x!=="无限制"&&!r.x.includes("不限"))return false}else{if(!r.x.includes(ex.replace("及以上","")))return false}}
+    return true
+  });
+  updateStats();renderTable();renderMap()
+}
+function resetFilter(){
+  document.getElementById("selProvince").value="";document.getElementById("selMajor").value="";document.getElementById("selEdu").value="";document.getElementById("selParty").value="";document.getElementById("selExp").value="";
+  filteredData=DATA.positions;sortKey=null;updateStats();renderTable();renderMap()
+}
+
+document.querySelectorAll(".table-wrap th").forEach(function(th){th.addEventListener("click",function(){var k=th.dataset.sort;if(!k)return;sortKey===k?sortAsc=!sortAsc:(sortKey=k,sortAsc=true);renderTable();document.querySelectorAll(".table-wrap th").forEach(function(t){if(t.dataset.sort){t.textContent=t.textContent.replace(/ [▴▾]/g,"")+" ▾"}});th.textContent=th.textContent.replace(" ▾","")+(sortAsc?" ▴":" ▾")})});
+
+function exportCSV(){
+  var h=["部门名称","职位名称","机构层级","学历要求","政治面貌","基层经验","招考人数","省份"],k=["d","t","l","e","p","x","c","r"],csv="﻿"+h.join(",")+"\n";
+  filteredData.forEach(function(r){csv+=k.map(function(kk){var v=r[kk]||"";return '"'+String(v).replace(/"/g,'""')+'"'}).join(",")+"\n"});
+  var b=new Blob([csv],{type:"text/csv;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download="国考岗位筛选结果_"+new Date().toISOString().slice(0,10)+".csv";a.click();URL.revokeObjectURL(u)
+}
+
+async function loadChinaGeo(){if(chinaGeoLoaded)return;var r=await fetch("https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json");echarts.registerMap("china",await r.json());chinaGeoLoaded=true}
+
+async function renderMap(){
+  if(!DATA.positions.length){document.getElementById("chartMap").innerHTML="<div style='text-align:center;padding-top:180px;color:#999'><p style='font-size:48px;margin-bottom:16px'>📂</p><p style='font-size:18px'>请上传 Excel 职位表</p><p style='font-size:13px'>拖拽 .xlsx 文件到上方上传区</p></div>";return}
+  if(typeof echarts==="undefined"){document.getElementById("chartMap").innerHTML='<div style="text-align:center;padding-top:200px;color:#999"><p style="font-size:18px">🗺 图表组件加载中...</p><p style="font-size:13px">请稍候，正在从 CDN 加载 ECharts</p></div>';return}
+  if(!mapChart)mapChart=echarts.init(document.getElementById("chartMap"));
+  if(!chinaGeoLoaded){mapChart.showLoading({text:"加载地图数据..."});try{await loadChinaGeo()}catch(e){mapChart.hideLoading();mapChart.setOption({title:{text:"地图加载失败，请检查网络连接",left:"center",top:"center",textStyle:{color:"#999",fontSize:16}}});return};mapChart.hideLoading()}
+  var fm={};filteredData.forEach(function(r){var n=PM[r.r]||r.r;fm[n]=(fm[n]||0)+1});
+  var md=Object.keys(provSum).map(function(s){var n=PM[s]||s;return{name:n,value:fm[n]||0,total:provSum[s].total,politic:provSum[s].politic,shortName:s}});
+  var mx=Math.max.apply(null,md.map(function(d){return d.value}).concat([1]));
+  mapChart.setOption({title:{text:"各省岗位分布（点击省份筛选）",left:"center",top:8,textStyle:{fontSize:16,color:"#2c3e50"}},tooltip:{trigger:"item",formatter:function(p){if(!p.data||!p.data.total)return(p.name||"")+"<br/>暂无数据";return"<b>"+(p.data.shortName||p.name)+"</b><br/>当前筛选岗位: "+(p.data.value||0)+" 个<br/>岗位总数: "+p.data.total+" 个<br/>政治学相关: "+p.data.politic+" 个"}},visualMap:{min:0,max:mx,text:["多","少"],inRange:{color:["#e8f4fd","#b8d8f0","#6ab0de","#2980b9","#1a5276"]},calculable:true,left:20,bottom:20},series:[{type:"map",map:"china",roam:true,zoom:1.15,top:30,label:{show:true,fontSize:10,color:"#555"},emphasis:{label:{show:true,fontSize:14,fontWeight:"bold"}},data:md}]});
+  mapChart.off("click");mapChart.on("click",function(p){if(p.data&&p.data.shortName){document.getElementById("selProvince").value=p.data.shortName;applyFilter()}})
+}
+
+function renderTrends(){
+  if(typeof echarts==="undefined"||!document.getElementById("tab-trend").classList.contains("active"))return;
+  if(!DATA.trends){document.getElementById("chartTrend1").innerHTML="<div style='text-align:center;padding-top:140px;color:#999'><p>请先上传职位表数据</p></div>";return}
+  var t=DATA.trends;
+  if(!trendCharts.t1)trendCharts.t1=echarts.init(document.getElementById("chartTrend1"));
+  trendCharts.t1.setOption({title:{text:"国考历年招录与报考趋势",left:"center",textStyle:{fontSize:14,color:"#2c3e50"}},tooltip:{trigger:"axis"},legend:{bottom:0,data:["招录人数(万)","报考人数(万)","竞争比"]},grid:{left:50,right:50,top:50,bottom:40},xAxis:{type:"category",data:t.national.years.map(String)},yAxis:[{type:"value",name:"万人"},{type:"value",name:"竞争比",min:0}],series:[{name:"招录人数(万)",type:"bar",data:t.national.recruitment,itemStyle:{color:"#2980b9"},barWidth:"30%"},{name:"报考人数(万)",type:"line",data:t.national.applicants,itemStyle:{color:"#e67e22"},lineStyle:{width:2}},{name:"竞争比",type:"line",yAxisIndex:1,data:t.national.competition,itemStyle:{color:"#e74c3c"},lineStyle:{width:2,type:"dashed"}}]});
+  if(!trendCharts.t2)trendCharts.t2=echarts.init(document.getElementById("chartTrend2"));
+  trendCharts.t2.setOption({title:{text:"竞争比变化趋势 (:1)",left:"center",textStyle:{fontSize:14,color:"#2c3e50"}},tooltip:{trigger:"axis"},legend:{bottom:0},grid:{left:50,right:30,top:50,bottom:40},xAxis:{type:"category",data:t.national.years.map(String)},yAxis:{type:"value",name:"竞争比"},series:[{name:"全国竞争比",type:"line",data:t.national.competition,smooth:true,itemStyle:{color:"#e74c3c"},areaStyle:{color:"rgba(231,76,60,0.1)"}}]});
+  if(!trendCharts.p1)trendCharts.p1=echarts.init(document.getElementById("chartPie1"));
+  var ec={};filteredData.forEach(function(r){var e=r.e||"其他";if(e.includes("本科")&&!e.includes("硕士")&&!e.includes("博士"))e="本科";else if(e.includes("硕士")&&!e.includes("博士"))e="硕士及以上";else if(e.includes("博士"))e="博士";else if(e.includes("大专"))e="大专";ec[e]=(ec[e]||0)+1});
+  trendCharts.p1.setOption({title:{text:"学历要求分布（当前筛选）",left:"center",textStyle:{fontSize:14,color:"#2c3e50"}},tooltip:{trigger:"item",formatter:"{b}: {c} ({d}%)"},legend:{bottom:0},series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.entries(ec).map(function(e){return{name:e[0],value:e[1]}}),label:{formatter:"{b}\n{d}%"}}]});
+  if(!trendCharts.p2)trendCharts.p2=echarts.init(document.getElementById("chartPie2"));
+  var pc={};filteredData.forEach(function(r){var p=r.p||"不限";if(p.includes("党员")&&p.includes("团员"))p="党员/团员";else if(p.includes("党员"))p="中共党员";else if(p.includes("团员"))p="共青团员";else p="不限";pc[p]=(pc[p]||0)+1});
+  trendCharts.p2.setOption({title:{text:"政治面貌要求分布（当前筛选）",left:"center",textStyle:{fontSize:14,color:"#2c3e50"}},tooltip:{trigger:"item",formatter:"{b}: {c} ({d}%)"},legend:{bottom:0},series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.entries(pc).map(function(e){return{name:e[0],value:e[1]}}),label:{formatter:"{b}\n{d}%"}}]})
+}
+
+function switchTab(n){
+  document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active")});
+  document.querySelectorAll(".tab-content").forEach(function(c){c.classList.remove("active")});
+  document.querySelectorAll(".tab-btn")[n==="map"?0:n==="trend"?1:2].classList.add("active");
+  document.getElementById("tab-"+n).classList.add("active")
+}
+function onTabSwitch(n){
+  if(n==="trend")setTimeout(renderTrends,200);
+  if(n==="map")setTimeout(function(){if(typeof echarts!=="undefined"&&mapChart&&!mapChart.isDisposed())mapChart.resize()},200)
+}
+window.addEventListener("resize",function(){
+  if(typeof echarts==="undefined")return;
+  if(mapChart&&!mapChart.isDisposed()&&document.getElementById("tab-map").classList.contains("active"))mapChart.resize();
+  if(document.getElementById("tab-trend").classList.contains("active"))Object.values(trendCharts).forEach(function(c){if(c&&!c.isDisposed())c.resize()})
+});
+
+function init(){
+  rebuildProvSum();
+  document.getElementById("chartStatus").textContent=typeof echarts!=="undefined"?"图表就绪":"图表组件加载中...";
+  Object.keys(DATA.provinceStats).sort().forEach(function(p){var o=document.createElement("option");o.value=p;o.textContent=p+" ("+DATA.provinceStats[p].total+"岗)";document.getElementById("selProvince").appendChild(o)});
+  filteredData=DATA.positions;updateStats();renderTable();renderMap();
+  document.querySelectorAll(".tab-btn").forEach(function(b,i){b.addEventListener("click",function(){onTabSwitch(i===0?"map":i===1?"trend":"table")})})
+}
+
+window._echartsReady=function(){document.getElementById("chartStatus").textContent="图表就绪";if(!mapChart||mapChart.isDisposed())renderMap()};
+init();
+</script>
+<script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js" onload="window._echartsReady()"></script>
+</body>
+</html>
