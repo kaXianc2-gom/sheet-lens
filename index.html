@@ -5,196 +5,25 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>SheetLens — 表格数据筛选工具</title>
 <style>
-
-/* ===== 全局 ===== */
 :root {
-  --bg: #f5f6fa;
-  --card: #fff;
-  --primary: #1a5276;
-  --accent: #2980b9;
-  --border: #dce1e8;
-  --text: #2c3e50;
-  --muted: #7f8c8d;
-  --success: #27ae60;
-  --warn: #e67e22;
-  --radius: 10px;
-  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --bg: #f5f6fa; --card: #fff; --primary: #1a5276; --accent: #2980b9;
+  --border: #dce1e8; --text: #2c3e50; --muted: #7f8c8d;
+  --success: #27ae60; --warn: #e67e22; --danger: #e74c3c;
+  --radius: 10px; --shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
-
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-  min-height: 100vh;
+  background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
 }
-
-/* ===== 头部 ===== */
 .header {
   background: linear-gradient(135deg, var(--primary), #1a6d9f);
-  color: #fff;
-  padding: 18px 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
+  color: #fff; padding: 18px 28px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
 }
 .header h1 { font-size: 22px; font-weight: 600; letter-spacing: 1px; }
 .header .sub { font-size: 13px; opacity: 0.85; }
-
-/* ===== 主布局 ===== */
 .main { max-width: 1400px; margin: 0 auto; padding: 20px 24px; }
-
-/* ===== 筛选面板 ===== */
-.filter-card {
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 20px 24px;
-  margin-bottom: 16px;
-}
-.filter-row {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  align-items: flex-end;
-}
-.filter-group { display: flex; flex-direction: column; gap: 4px; }
-.filter-group label {
-  font-size: 13px;
-  color: var(--muted);
-  font-weight: 500;
-}
-.filter-group select,
-.filter-group input {
-  padding: 9px 12px;
-  border: 1.5px solid var(--border);
-  border-radius: 6px;
-  font-size: 14px;
-  color: var(--text);
-  background: #fafbfc;
-  min-width: 140px;
-  transition: border-color 0.2s;
-}
-.filter-group select:focus,
-.filter-group input:focus {
-  outline: none;
-  border-color: var(--accent);
-  background: #fff;
-}
-.filter-group input { min-width: 200px; }
-
-.btn {
-  padding: 9px 24px;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex; align-items: center; gap: 6px;
-}
-.btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:hover { background: #2471a3; }
-.btn-outline { background: #fff; color: var(--accent); border: 1.5px solid var(--accent); }
-.btn-outline:hover { background: #eaf2f8; }
-.btn-success { background: var(--success); color: #fff; }
-.btn-success:hover { background: #229954; }
-
-/* ===== 统计条 ===== */
-.stats-bar {
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 14px 24px;
-  margin-bottom: 16px;
-  display: flex;
-  gap: 28px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.stat-item { display: flex; align-items: center; gap: 8px; }
-.stat-num { font-size: 26px; font-weight: 700; color: var(--primary); }
-.stat-label { font-size: 13px; color: var(--muted); }
-
-/* ===== 标签切换 ===== */
-.tabs {
-  display: flex;
-  gap: 0;
-  margin-bottom: 0;
-  background: var(--card);
-  border-radius: var(--radius) var(--radius) 0 0;
-  box-shadow: var(--shadow);
-}
-.tab-btn {
-  padding: 12px 28px;
-  border: none;
-  background: none;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--muted);
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
-}
-.tab-btn.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-  font-weight: 600;
-}
-.tab-btn:hover { color: var(--accent); }
-
-/* ===== 内容区 ===== */
-.content-card {
-  background: var(--card);
-  border-radius: 0 0 var(--radius) var(--radius);
-  box-shadow: var(--shadow);
-  padding: 20px 24px;
-  min-height: 480px;
-}
-.tab-content { display: none; }
-.tab-content.active { display: block; }
-.chart-box { width: 100%; height: 480px; }
-.chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.chart-half { height: 360px; }
-
-/* ===== 表格 ===== */
-.table-wrap { overflow-x: auto; max-height: 520px; overflow-y: auto; }
-.table-wrap table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.table-wrap thead { position: sticky; top: 0; z-index: 1; }
-.table-wrap th {
-  background: var(--primary);
-  color: #fff;
-  padding: 10px 10px;
-  text-align: left;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  user-select: none;
-}
-.table-wrap th:hover { background: #1a6d9f; }
-.table-wrap td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
-.table-wrap tr:hover td { background: #eef5fb; }
-.table-wrap .sort-arrow { font-size: 11px; margin-left: 3px; }
-
-/* ===== 底部 ===== */
-.footer {
-  text-align: center;
-  padding: 14px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-/* ===== 响应式 ===== */
-@media (max-width: 768px) {
-  .filter-row { flex-direction: column; }
-  .chart-row { grid-template-columns: 1fr; }
-  .header h1 { font-size: 18px; }
-}
-
 
 .upload-zone {
   background: #f0f7ff; border: 2px dashed #2980b9; border-radius: 8px;
@@ -207,47 +36,231 @@ body {
 .upload-zone .upload-text { font-size: 13px; color: #555; line-height: 1.5; }
 .upload-zone .upload-hint { font-size: 11px; color: #999; }
 .upload-zone input[type=file] { display: none; }
+
 .data-badge {
   display: inline-block; padding: 3px 10px; border-radius: 12px;
   font-size: 12px; font-weight: 600;
 }
 .data-badge.builtin { background: #fff3cd; color: #856404; }
-.data-badge.user { background: #d4edda; color: #155724; }
+.data-badge.user    { background: #d4edda; color: #155724; }
 
+/* 个人画像面板 */
+.profile-card {
+  background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 14px 24px; margin-bottom: 16px;
+  border-left: 4px solid var(--accent);
+}
+.profile-toggle {
+  font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer;
+  display: flex; align-items: center; gap: 8px; user-select: none;
+}
+.profile-toggle:hover { color: #2471a3; }
+.profile-body { display: none; margin-top: 12px; }
+.profile-body.open { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+.profile-body .hint { font-size: 11px; color: var(--muted); width: 100%; }
+
+.filter-card {
+  background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 20px 24px; margin-bottom: 16px;
+}
+.filter-row {
+  display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end;
+}
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+.filter-group label { font-size: 13px; color: var(--muted); font-weight: 500; }
+.filter-group select, .filter-group input {
+  padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 6px;
+  font-size: 14px; color: var(--text); background: #fafbfc;
+  min-width: 140px; transition: border-color 0.2s;
+}
+.filter-group select:focus, .filter-group input:focus {
+  outline: none; border-color: var(--accent); background: #fff;
+}
+.filter-group input { min-width: 200px; }
+
+.btn {
+  padding: 9px 24px; border: none; border-radius: 6px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+}
+.btn-primary  { background: var(--accent); color: #fff; }
+.btn-primary:hover  { background: #2471a3; }
+.btn-outline  { background: #fff; color: var(--accent); border: 1.5px solid var(--accent); }
+.btn-outline:hover { background: #eaf2f8; }
+.btn-success  { background: var(--success); color: #fff; }
+.btn-success:hover { background: #229954; }
+.btn-sm { padding: 6px 14px; font-size: 12px; }
+
+.stats-bar {
+  background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 14px 24px; margin-bottom: 16px;
+  display: flex; gap: 28px; flex-wrap: wrap; align-items: center;
+}
+.stat-item { display: flex; align-items: center; gap: 8px; }
+.stat-num  { font-size: 26px; font-weight: 700; color: var(--primary); }
+.stat-label { font-size: 13px; color: var(--muted); }
+
+.tabs {
+  display: flex; gap: 0; margin-bottom: 0; background: var(--card);
+  border-radius: var(--radius) var(--radius) 0 0; box-shadow: var(--shadow);
+}
+.tab-btn {
+  padding: 12px 28px; border: none; background: none;
+  font-size: 14px; font-weight: 500; color: var(--muted);
+  cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s;
+}
+.tab-btn.active {
+  color: var(--accent); border-bottom-color: var(--accent); font-weight: 600;
+}
+.tab-btn:hover { color: var(--accent); }
+
+.content-card {
+  background: var(--card); border-radius: 0 0 var(--radius) var(--radius);
+  box-shadow: var(--shadow); padding: 20px 24px; min-height: 480px;
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.chart-box  { width: 100%; height: 480px; }
+.chart-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.chart-half { height: 340px; }
+.chart-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 14px; }
+.chart-third { height: 300px; }
+
+.table-wrap { overflow-x: auto; max-height: 520px; overflow-y: auto; }
+.table-wrap table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table-wrap thead { position: sticky; top: 0; z-index: 1; }
+.table-wrap th {
+  background: var(--primary); color: #fff; padding: 10px 10px;
+  text-align: left; font-weight: 500; cursor: pointer;
+  white-space: nowrap; user-select: none;
+}
+.table-wrap th:hover { background: #1a6d9f; }
+.table-wrap td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.table-wrap tr:hover td { background: #eef5fb; }
+
+/* 评分颜色 */
+.score-cell { display: inline-block; padding: 2px 8px; border-radius: 10px; font-weight: 600; font-size: 12px; }
+.score-a { background: #d4efdf; color: #1e8449; }
+.score-b { background: #d6eaf8; color: #2471a3; }
+.score-c { background: #fdebd0; color: #b9770e; }
+.score-d { background: #fadbd8; color: #c0392b; }
+
+.footer { text-align: center; padding: 14px; color: var(--muted); font-size: 12px; }
+
+@media (max-width: 768px) {
+  .filter-row, .profile-body.open { flex-direction: column; }
+  .chart-row, .chart-row-3 { grid-template-columns: 1fr; }
+  .header h1 { font-size: 18px; }
+}
 </style>
 </head>
 <body>
+
 <div class="header">
   <div>
     <h1>🏛 SheetLens — 表格数据筛选工具</h1>
     <span class="data-badge builtin" id="dataBadge">📂 请上传数据</span>
   </div>
-  <div class="sub">拖拽上传 Excel | 自动识别列名 | 多维度筛选</div>
+  <div class="sub">拖拽上传 Excel | 自动识别列名 | 多维度筛选 | 智能评分</div>
 </div>
+
 <div class="main">
 
-<!-- 上传区 -->
-<div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+<div class="upload-zone" id="uploadZone">
   <div class="upload-icon">📂</div>
   <div>
     <div class="upload-text"><b>拖拽 Excel 文件到此处</b> 或 点击选择文件</div>
     <div class="upload-hint">支持 .xlsx / .xls 格式 | 自动识别国考29列/省考标准格式 | 可多文件拖拽合并分析</div>
   </div>
-  <input type="file" id="fileInput" accept=".xlsx" multiple onchange="handleFiles(this.files)">
+  <input type="file" id="fileInput" accept=".xlsx" multiple>
+</div>
+
+<!-- 个人画像（评分系统） -->
+<div class="profile-card">
+  <div class="profile-toggle" id="profileToggle">
+    <span>🎯</span> 个人画像匹配 <span style="font-size:12px;color:var(--muted)">（填写后自动为岗位打分排序）</span>
+    <span style="margin-left:auto;font-size:12px;" id="profileArrow">▶ 展开</span>
+  </div>
+  <div class="profile-body" id="profileBody">
+    <div class="filter-group">
+      <label>📚 我的专业</label>
+      <input id="myMajor" type="text" placeholder="如：政治学">
+    </div>
+    <div class="filter-group">
+      <label>🎓 我的学历</label>
+      <select id="myEdu">
+        <option value="">不设置</option>
+        <option value="大专">大专</option>
+        <option value="本科">本科</option>
+        <option value="硕士">硕士研究生</option>
+        <option value="博士">博士研究生</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>🏛 我的政治面貌</label>
+      <select id="myParty">
+        <option value="">不设置</option>
+        <option value="党员">中共党员</option>
+        <option value="群众">群众/团员</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>📅 我的基层经验</label>
+      <select id="myExp">
+        <option value="">不设置</option>
+        <option value="无">无经验</option>
+        <option value="二年">二年及以上</option>
+        <option value="三年">三年及以上</option>
+      </select>
+    </div>
+    <button class="btn btn-primary btn-sm" id="btnScore">🧠 开始评分</button>
+    <button class="btn btn-outline btn-sm" id="btnScoreOff">关闭评分</button>
+    <div class="hint">评分维度：专业匹配(30分) + 学历匹配(20分) + 招录人数(20分) + 政治面貌(15分) + 基层经验(15分) = 100分</div>
+  </div>
 </div>
 
 <div class="filter-card">
   <div class="filter-row">
-    <div class="filter-group"><label>📍 目标省份</label><select id="selProvince"><option value="">全部省份</option></select></div>
-    <div class="filter-group"><label>📚 专业关键词</label><input id="selMajor" type="text" placeholder="如：政治学、法学、计算机..."></div>
-    <div class="filter-group"><label>🎓 学历要求</label>
-      <select id="selEdu"><option value="">不限</option><option value="本科">本科及以上</option><option value="仅限本科">仅限本科</option><option value="硕士">硕士研究生及以上</option><option value="仅限硕士">仅限硕士研究生</option><option value="博士">博士研究生</option><option value="大专">大专及以上</option></select></div>
-    <div class="filter-group"><label>🏛 政治面貌</label>
-      <select id="selParty"><option value="">不限</option><option value="党员">中共党员</option><option value="不限">无限制</option></select></div>
-    <div class="filter-group"><label>📅 基层经验</label>
-      <select id="selExp"><option value="">不限</option><option value="无限制">无限制</option><option value="二年">二年及以上</option><option value="三年">三年及以上</option></select></div>
-    <button class="btn btn-primary" onclick="applyFilter()">🔍 筛选岗位</button>
-    <button class="btn btn-outline" onclick="resetFilter()">↻ 重置</button>
+    <div class="filter-group">
+      <label>📍 目标省份</label>
+      <select id="selProvince"><option value="">全部省份</option></select>
+    </div>
+    <div class="filter-group">
+      <label>📚 岗位专业关键词</label>
+      <input id="selMajor" type="text" placeholder="如：政治学、法学、计算机...">
+    </div>
+    <div class="filter-group">
+      <label>🎓 学历要求</label>
+      <select id="selEdu">
+        <option value="">不限</option>
+        <option value="本科">本科及以上</option>
+        <option value="仅限本科">仅限本科</option>
+        <option value="硕士">硕士研究生及以上</option>
+        <option value="仅限硕士">仅限硕士研究生</option>
+        <option value="博士">博士研究生</option>
+        <option value="大专">大专及以上</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>🏛 政治面貌</label>
+      <select id="selParty">
+        <option value="">不限</option>
+        <option value="党员">中共党员</option>
+        <option value="不限">无限制</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>📅 基层经验</label>
+      <select id="selExp">
+        <option value="">不限</option>
+        <option value="无限制">无限制</option>
+        <option value="二年">二年及以上</option>
+        <option value="三年">三年及以上</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" id="btnFilter">🔍 筛选岗位</button>
+    <button class="btn btn-outline" id="btnReset">↻ 重置</button>
   </div>
 </div>
 
@@ -255,299 +268,713 @@ body {
   <div class="stat-item"><span class="stat-num" id="statPos">0</span><span class="stat-label">匹配岗位</span></div>
   <div class="stat-item"><span class="stat-num" id="statRec">—</span><span class="stat-label">招录总人数</span></div>
   <div class="stat-item"><span class="stat-num" id="statProv">0</span><span class="stat-label">覆盖省份</span></div>
+  <div class="stat-item" id="statScoreItem" style="display:none"><span class="stat-num" id="statScore" style="color:var(--accent)">—</span><span class="stat-label">平均匹配分</span></div>
   <div class="stat-item"><span class="stat-num" id="statYear">2025</span><span class="stat-label">数据年份</span></div>
 </div>
 
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('map')">🗺 省份地图</button>
-  <button class="tab-btn" onclick="switchTab('trend')">📈 趋势分析</button>
-  <button class="tab-btn" onclick="switchTab('table')">📋 岗位列表</button>
+  <button class="tab-btn active" data-tab="map">🗺 省份地图</button>
+  <button class="tab-btn" data-tab="trend">📈 多维分析</button>
+  <button class="tab-btn" data-tab="table">📋 岗位列表</button>
 </div>
+
 <div class="content-card">
-  <div class="tab-content active" id="tab-map"><div class="chart-box" id="chartMap"></div></div>
+  <div class="tab-content active" id="tab-map">
+    <div class="chart-box" id="chartMap"></div>
+  </div>
   <div class="tab-content" id="tab-trend">
-    <div class="chart-row"><div class="chart-half" id="chartTrend1"></div><div class="chart-half" id="chartTrend2"></div></div>
-    <div class="chart-row" style="margin-top:16px"><div class="chart-half" id="chartPie1"></div><div class="chart-half" id="chartPie2"></div></div>
+    <div class="chart-row">
+      <div class="chart-half" id="chartBar1"></div>
+      <div class="chart-half" id="chartPie1"></div>
+    </div>
+    <div class="chart-row-3">
+      <div class="chart-third" id="chartPie2"></div>
+      <div class="chart-third" id="chartPie3"></div>
+      <div class="chart-third" id="chartPie4"></div>
+    </div>
+    <div class="chart-row" style="margin-top:14px">
+      <div class="chart-half" id="chartBar2"></div>
+      <div class="chart-half" id="chartPie5"></div>
+    </div>
   </div>
   <div class="tab-content" id="tab-table">
-    <div style="margin-bottom:12px;display:flex;gap:8px"><span id="tableInfo"></span><div style="flex:1"></div><button class="btn btn-success" onclick="exportCSV()">📥 导出 CSV</button></div>
-    <div class="table-wrap"><table><thead><tr><th data-sort="d">部门 ▾</th><th data-sort="t">职位名称 ▾</th><th data-sort="l">机构层级 ▾</th><th data-sort="e">学历要求 ▾</th><th data-sort="p">政治面貌 ▾</th><th data-sort="x">基层经验 ▾</th><th data-sort="c">招考人数 ▾</th><th data-sort="r">省份 ▾</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">
+      <span id="tableInfo"></span>
+      <div style="flex:1"></div>
+      <span id="scoreSummary" style="font-size:12px;color:var(--muted);margin-right:8px"></span>
+      <button class="btn btn-success btn-sm" id="btnExport">📥 导出 CSV</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th data-sort="_score" id="thScore" style="display:none">⭐评分</th>
+          <th data-sort="d">部门 ▾</th>
+          <th data-sort="t">职位名称 ▾</th>
+          <th data-sort="l">机构层级 ▾</th>
+          <th data-sort="e">学历要求 ▾</th>
+          <th data-sort="p">政治面貌 ▾</th>
+          <th data-sort="x">基层经验 ▾</th>
+          <th data-sort="c">招考人数 ▾</th>
+          <th data-sort="r">省份 ▾</th>
+        </tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
+
 </div>
-<div class="footer">就绪 | 请上传 Excel 职位表开始筛选 | <span id="chartStatus">等待数据...</span></div>
 
-<script>var DATA={positions:[],provinceStats:{},trends:null,meta:{totalPositions:0,totalProvinces:0,dataYear:"",generatedAt:""}};</script>
+<div class="footer">
+  就绪 | 请上传 Excel 职位表开始筛选 | <span id="chartStatus">等待数据...</span>
+</div>
 
-<!-- SheetJS: Excel 读取（异步加载，不阻塞页面） -->
-<script async src="https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" onerror="document.getElementById('uploadZone').innerHTML='<div class=upload-icon>⚠️</div><div><div class=upload-text>Excel 读取组件加载失败</div><div class=upload-hint>请检查网络后刷新重试，或直接使用内置2025年数据</div></div>'"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
 
 <script>
-var PM={"北京":"北京市","上海":"上海市","天津":"天津市","重庆":"重庆市","广东":"广东省","山东":"山东省","江苏":"江苏省","浙江":"浙江省","河南":"河南省","河北":"河北省","湖南":"湖南省","湖北":"湖北省","四川":"四川省","福建":"福建省","安徽":"安徽省","江西":"江西省","辽宁":"辽宁省","陕西":"陕西省","云南":"云南省","贵州":"贵州省","甘肃":"甘肃省","青海":"青海省","海南":"海南省","山西":"山西省","吉林":"吉林省","黑龙江":"黑龙江省","广西":"广西壮族自治区","内蒙古":"内蒙古自治区","宁夏":"宁夏回族自治区","新疆":"新疆维吾尔自治区","西藏":"西藏自治区"};
-var sortKey=null,sortAsc=true,filteredData=[],mapChart=null,chinaGeoLoaded=false,trendCharts={};
-var provSum={}, userDataLoaded=false;
+// ═══════════════════════════════════════════════════════════════
+//  STATE — 单一状态树
+// ═══════════════════════════════════════════════════════════════
+var STATE = {
+  raw: [],
+  filtered: [],
+  provinceStats: {},
+  provinceMap: {
+    "北京":"北京市","上海":"上海市","天津":"天津市","重庆":"重庆市",
+    "广东":"广东省","山东":"山东省","江苏":"江苏省","浙江":"浙江省",
+    "河南":"河南省","河北":"河北省","湖南":"湖南省","湖北":"湖北省",
+    "四川":"四川省","福建":"福建省","安徽":"安徽省","江西":"江西省",
+    "辽宁":"辽宁省","陕西":"陕西省","云南":"云南省","贵州":"贵州省",
+    "甘肃":"甘肃省","青海":"青海省","海南":"海南省","山西":"山西省",
+    "吉林":"吉林省","黑龙江":"黑龙江省","广西":"广西壮族自治区",
+    "内蒙古":"内蒙古自治区","宁夏":"宁夏回族自治区",
+    "新疆":"新疆维吾尔自治区","西藏":"西藏自治区"
+  },
+  meta: { totalPositions: 0, totalProvinces: 0, dataYear: "", userDataLoaded: false },
+  sort: { key: null, asc: true },
+  analytics: {},
+  filters: { province: "", major: "", edu: "", party: "", exp: "" },
+  profile: { enabled: false, major: "", edu: "", party: "", exp: "" }
+};
 
-function rebuildProvSum(){
-  provSum={};
-  DATA.positions.forEach(function(r){if(!provSum[r.r])provSum[r.r]={total:0,politic:0};provSum[r.r].total++;if(/政治学|国际政治|国际关系|外交学/.test(r.m))provSum[r.r].politic++})
-}
-
-function rebuildProvinceStats(){
-  var ps={};
-  DATA.positions.forEach(function(r){var p=r.r;if(!ps[p])ps[p]={total:0,politic:0};ps[p].total++;if(/政治学|国际政治|国际关系|外交学/.test(r.m))ps[p].politic++});
-  DATA.provinceStats=ps
-}
-
-function rebuildDropdown(){
-  var sel=document.getElementById("selProvince");
-  sel.innerHTML='<option value="">全部省份</option>';
-  Object.keys(DATA.provinceStats).sort().forEach(function(p){var o=document.createElement("option");o.value=p;o.textContent=p+" ("+DATA.provinceStats[p].total+"岗)";sel.appendChild(o)})
-}
-
-// ===== Excel 上传处理 =====
-function handleFiles(files){
-  if(!files||!files.length)return;
-  if(typeof XLSX==="undefined"){alert("Excel 读取组件(XLSX)尚未加载，请稍后重试");return}
-  var allRows=[], totalFiles=files.length, loaded=0;
-
-  Array.from(files).forEach(function(file){
-    var reader=new FileReader();
-    reader.onload=function(e){
-      try{
-        var wb=XLSX.read(e.target.result,{type:"array"});
-        var ws=wb.Sheets[wb.SheetNames[0]];
-        var rows=XLSX.utils.sheet_to_json(ws,{defval:""});
-        if(!rows.length){loaded++;if(loaded===totalFiles)finishUpload(allRows);return}
-
-        // 自动识别列名(第一行是表头)
-        var headers=Object.keys(rows[0]);
-
-        // 智能表头探测：检测匹配列的唯一性(说明行会让所有关键词匹配到同一列)
-        var testKws=["部门名称","招考职位","职位名称","专业","学历","工作地点","地区","省份"];
-        var matched={},uniqueCols={};
-        testKws.forEach(function(kw){
-          for(var i=0;i<headers.length;i++){if(headers[i].includes(kw)){matched[kw]=headers[i];break}}
-        });
-        Object.values(matched).forEach(function(v){uniqueCols[v]=true});
-        if(Object.keys(matched).length<3||Object.keys(uniqueCols).length<3){
-          // 手动跳过说明行: 用 header:1 获取数组，取第二行做表头
-          var rawRows=XLSX.utils.sheet_to_json(ws,{defval:"",header:1});
-          if(rawRows.length>=2){
-            var newHeaders=rawRows[1];
-            rows=[];
-            for(var r=2;r<rawRows.length;r++){
-              var obj={};
-              for(var c=0;c<newHeaders.length;c++){obj[String(newHeaders[c]||'')]=rawRows[r][c]!==undefined?rawRows[r][c]:''}
-              rows.push(obj)
-            }
-            if(rows.length>0){headers=Object.keys(rows[0]);console.warn(file.name+": 自动跳过说明行，使用第二行作为表头")}
-          }
-        }
-
-        // 构建列索引映射: 列名→索引
-        var colIdx={};
-        headers.forEach(function(h,i){colIdx[h]=i});
-
-        // 用关键词匹配关键列
-        function findCol(keywords){
-          for(var i=0;i<headers.length;i++){
-            var h=headers[i];
-            for(var k=0;k<keywords.length;k++){if(h.includes(keywords[k]))return h}
-          }
-          return null
-        }
-
-        var mDept=findCol(["部门名称"]),
-            mTitle=findCol(["招考职位","职位名称"]),
-            mLevel=findCol(["机构层级"]),
-            mAttr=findCol(["职位属性"]),
-            mMajor=findCol(["专业"]),
-            mEdu=findCol(["学历"]),
-            mParty=findCol(["政治面貌"]),
-            mExp=findCol(["基层工作最低年限","基层经验"]),
-            mCount=findCol(["招考人数","招录人数"]),
-            mRegion=findCol(["地区","省份"]);
-
-        if(!mMajor){console.warn(file.name+": 未找到「专业」列");loaded++;return}
-
-        // 从工作地点推断省份
-        var mLocation=findCol(["工作地点"]);
-
-        var fileRows=0;
-        rows.forEach(function(row){
-          var region=String(row[mRegion]||"");
-          // 如果地区列为空，尝试从工作地点提取省份
-          if(!region&&mLocation){
-            var loc=String(row[mLocation]||"");
-            var pm=Object.keys(PM).find(function(k){return loc.includes(k)});
-            if(pm)region=pm
-          }
-          if(!region)return; // 跳过无法识别省份的行
-
-          var count=parseInt(row[mCount])||1;
-          allRows.push({
-            d:String(row[mDept]||""),
-            t:String(row[mTitle]||""),
-            l:String(row[mLevel]||""),
-            a:String(row[mAttr]||""),
-            m:String(row[mMajor]||""),
-            e:String(row[mEdu]||""),
-            p:String(row[mParty]||""),
-            x:String(row[mExp]||""),
-            c:count,
-            r:region
-          });
-          fileRows++;
-        });
-        console.log(file.name+": 解析 "+fileRows+" 行");
-      }catch(err){console.error(file.name+": 解析失败",err)}
-      loaded++;
-      if(loaded===totalFiles)finishUpload(allRows)
-    };
-    reader.readAsArrayBuffer(file)
-  })
-}
-
-function finishUpload(allRows){
-  if(!allRows.length){alert("未能从文件中解析出有效数据。请确认文件格式与国考/省考职位表一致。");return}
-  DATA.positions=allRows;
-  DATA.meta={totalPositions:allRows.length,totalProvinces:0,dataYear:"用户数据",generatedAt:new Date().toISOString().slice(0,10)};
-  rebuildProvinceStats();rebuildProvSum();rebuildDropdown();
-  userDataLoaded=true;
-
-  document.getElementById("dataBadge").textContent="📎 用户数据 ("+allRows.length+"岗)";
-  document.getElementById("dataBadge").className="data-badge user";
-  document.getElementById("statYear").textContent="上传";
-  document.getElementById("footerYear").textContent="用户上传";
-  document.getElementById("footerProv").textContent=Object.keys(DATA.provinceStats).length;
-  document.getElementById("statProv").textContent=Object.keys(DATA.provinceStats).length;
-  document.getElementById("statPos").textContent=allRows.length;
-
-  filteredData=DATA.positions;sortKey=null;updateStats();renderTable();
-  // 重新渲染地图（如果 ECharts 已加载）
-  if(mapChart){mapChart.dispose();mapChart=null;chinaGeoLoaded=false}
-  if(typeof echarts!=="undefined")renderMap();
-  // 销毁趋势缓存以便重建
-  Object.values(trendCharts).forEach(function(c){if(c&&!c.isDisposed())c.dispose()});
-  trendCharts={};
-}
-
-// ===== 拖拽支持 =====
-var uz=document.getElementById("uploadZone");
-uz.addEventListener("dragover",function(e){e.preventDefault();uz.classList.add("dragover")});
-uz.addEventListener("dragleave",function(){uz.classList.remove("dragover")});
-uz.addEventListener("drop",function(e){e.preventDefault();uz.classList.remove("dragover");handleFiles(e.dataTransfer.files)});
-
-function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
-
-function updateStats(){
-  document.getElementById("statPos").textContent=filteredData.length;
-  document.getElementById("statRec").textContent=filteredData.reduce(function(s,r){return s+r.c},0)+"人";
-  document.getElementById("statProv").textContent=new Set(filteredData.map(function(r){return r.r})).size
-}
-
-function renderTable(){
-  var d=[].concat(filteredData);
-  if(!d.length){document.getElementById("tableInfo").textContent="暂无数据，请上传 Excel 职位表";document.getElementById("tableBody").innerHTML="<tr><td colspan=8 style='text-align:center;padding:60px;color:#999'>📂 请拖拽 Excel 文件到上方上传区<br><small>支持国考/省考标准格式</small></td></tr>";return}
-  if(sortKey){d.sort(function(a,b){var va=sortKey==="c"?Number(a[sortKey]):String(a[sortKey]),vb=sortKey==="c"?Number(b[sortKey]):String(b[sortKey]);return va<vb?sortAsc?-1:1:va>vb?sortAsc?1:-1:0})}
-  var disp=d.slice(0,500);
-  document.getElementById("tableInfo").textContent="显示 "+disp.length+" / "+filteredData.length+" 条"+(filteredData.length>500?"（前500条）":"");
-  document.getElementById("tableBody").innerHTML=disp.map(function(r){return "<tr><td>"+esc(r.d)+"</td><td>"+esc(r.t)+"</td><td>"+esc(r.l)+"</td><td>"+esc(r.e)+"</td><td>"+(esc(r.p)||"不限")+"</td><td>"+(esc(r.x)||"无限制")+"</td><td>"+r.c+"</td><td>"+esc(r.r)+"</td></tr>"}).join("")
-}
-
-function applyFilter(){
-  var p=document.getElementById("selProvince").value,m=document.getElementById("selMajor").value.trim(),e=document.getElementById("selEdu").value,py=document.getElementById("selParty").value,ex=document.getElementById("selExp").value;
-  var kw=m?m.split(/[,，\s]+/).filter(Boolean):[];
-  filteredData=DATA.positions.filter(function(r){
-    if(p&&r.r!==p)return false;
-    if(kw.length&&!kw.some(function(k){return r.m.includes(k)}))return false;
-    if(e){if(e==="仅限本科"){if(!r.e.includes("仅限本科")&&!r.e.includes("限本科"))return false}else if(e==="仅限硕士"){if(!r.e.includes("仅限硕士")&&!r.e.includes("限硕士"))return false}else{var b=e.replace("仅限","");if(!r.e.includes(b))return false;if(r.e.includes("仅限")&&!r.e.includes(e))return false}}
-    if(py){if(py==="党员"){if(!r.p.includes("党员"))return false}else if(py==="不限"){if(r.p&&(r.p.includes("党员")||r.p.includes("团员")))return false}}
-    if(ex){if(ex==="无限制"){if(r.x&&r.x!=="无限制"&&!r.x.includes("不限"))return false}else{if(!r.x.includes(ex.replace("及以上","")))return false}}
-    return true
+// ═══════════════════════════════════════════════════════════════
+//  FILTER — 筛选引擎
+// ═══════════════════════════════════════════════════════════════
+function applyFilters(positions, filters) {
+  var p = filters.province, m = filters.major, e = filters.edu,
+      py = filters.party, ex = filters.exp;
+  var kw = m ? m.split(/[,，\s]+/).filter(Boolean) : [];
+  return positions.filter(function(r) {
+    if (p && r.r !== p) return false;
+    if (kw.length && !kw.some(function(k) { return r.m.indexOf(k) !== -1; })) return false;
+    if (e) {
+      if (e === "仅限本科") { if (r.e.indexOf("仅限本科") === -1 && r.e.indexOf("限本科") === -1) return false; }
+      else if (e === "仅限硕士") { if (r.e.indexOf("仅限硕士") === -1 && r.e.indexOf("限硕士") === -1) return false; }
+      else {
+        var base = e.replace("仅限", "");
+        if (r.e.indexOf(base) === -1) return false;
+        if (r.e.indexOf("仅限") !== -1 && r.e.indexOf(e) === -1) return false;
+      }
+    }
+    if (py) {
+      if (py === "党员") { if (r.p.indexOf("党员") === -1) return false; }
+      else if (py === "不限") { if (r.p && (r.p.indexOf("党员") !== -1 || r.p.indexOf("团员") !== -1)) return false; }
+    }
+    if (ex) {
+      if (ex === "无限制") { if (r.x && r.x !== "无限制" && r.x.indexOf("不限") === -1) return false; }
+      else { if (r.x.indexOf(ex.replace("及以上", "")) === -1) return false; }
+    }
+    return true;
   });
-  updateStats();renderTable();renderMap()
-}
-function resetFilter(){
-  document.getElementById("selProvince").value="";document.getElementById("selMajor").value="";document.getElementById("selEdu").value="";document.getElementById("selParty").value="";document.getElementById("selExp").value="";
-  filteredData=DATA.positions;sortKey=null;updateStats();renderTable();renderMap()
 }
 
-document.querySelectorAll(".table-wrap th").forEach(function(th){th.addEventListener("click",function(){var k=th.dataset.sort;if(!k)return;sortKey===k?sortAsc=!sortAsc:(sortKey=k,sortAsc=true);renderTable();document.querySelectorAll(".table-wrap th").forEach(function(t){if(t.dataset.sort){t.textContent=t.textContent.replace(/ [▴▾]/g,"")+" ▾"}});th.textContent=th.textContent.replace(" ▾","")+(sortAsc?" ▴":" ▾")})});
+// ═══════════════════════════════════════════════════════════════
+//  SCORE — 岗位评分引擎（5维100分）
+// ═══════════════════════════════════════════════════════════════
+var EDU_LEVELS = { "大专":1,"大专及以上":2,"本科":3,"本科及以上":3,"仅限本科":3,"硕士":5,"硕士研究生及以上":5,"仅限硕士":5,"博士":7,"博士研究生":7 };
 
-function exportCSV(){
-  var h=["部门名称","职位名称","机构层级","学历要求","政治面貌","基层经验","招考人数","省份"],k=["d","t","l","e","p","x","c","r"],csv="﻿"+h.join(",")+"\n";
-  filteredData.forEach(function(r){csv+=k.map(function(kk){var v=r[kk]||"";return '"'+String(v).replace(/"/g,'""')+'"'}).join(",")+"\n"});
-  var b=new Blob([csv],{type:"text/csv;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download="国考岗位筛选结果_"+new Date().toISOString().slice(0,10)+".csv";a.click();URL.revokeObjectURL(u)
+function getEduLevel(txt) {
+  if (!txt) return 0;
+  for (var k in EDU_LEVELS) { if (txt.indexOf(k) !== -1) return EDU_LEVELS[k]; }
+  return 0;
 }
 
-async function loadChinaGeo(){if(chinaGeoLoaded)return;var r=await fetch("https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json");echarts.registerMap("china",await r.json());chinaGeoLoaded=true}
-
-async function renderMap(){
-  if(!DATA.positions.length){document.getElementById("chartMap").innerHTML="<div style='text-align:center;padding-top:180px;color:#999'><p style='font-size:48px;margin-bottom:16px'>📂</p><p style='font-size:18px'>请上传 Excel 职位表</p><p style='font-size:13px'>拖拽 .xlsx 文件到上方上传区</p></div>";return}
-  if(typeof echarts==="undefined"){document.getElementById("chartMap").innerHTML='<div style="text-align:center;padding-top:200px;color:#999"><p style="font-size:18px">🗺 图表组件加载中...</p><p style="font-size:13px">请稍候，正在从 CDN 加载 ECharts</p></div>';return}
-  if(!mapChart)mapChart=echarts.init(document.getElementById("chartMap"));
-  if(!chinaGeoLoaded){mapChart.showLoading({text:"加载地图数据..."});try{await loadChinaGeo()}catch(e){mapChart.hideLoading();mapChart.setOption({title:{text:"地图加载失败，请检查网络连接",left:"center",top:"center",textStyle:{color:"#999",fontSize:16}}});return};mapChart.hideLoading()}
-  var fm={};filteredData.forEach(function(r){var n=PM[r.r]||r.r;fm[n]=(fm[n]||0)+1});
-  var md=Object.keys(provSum).map(function(s){var n=PM[s]||s;return{name:n,value:fm[n]||0,total:provSum[s].total,politic:provSum[s].politic,shortName:s}});
-  var mx=Math.max.apply(null,md.map(function(d){return d.value}).concat([1]));
-  mapChart.setOption({title:{text:"各省岗位分布（点击省份筛选）",left:"center",top:8,textStyle:{fontSize:16,color:"#2c3e50"}},tooltip:{trigger:"item",formatter:function(p){if(!p.data||!p.data.total)return(p.name||"")+"<br/>暂无数据";return"<b>"+(p.data.shortName||p.name)+"</b><br/>当前筛选岗位: "+(p.data.value||0)+" 个<br/>岗位总数: "+p.data.total+" 个<br/>政治学相关: "+p.data.politic+" 个"}},visualMap:{min:0,max:mx,text:["多","少"],inRange:{color:["#e8f4fd","#b8d8f0","#6ab0de","#2980b9","#1a5276"]},calculable:true,left:20,bottom:20},series:[{type:"map",map:"china",roam:true,zoom:1.15,top:30,label:{show:true,fontSize:10,color:"#555"},emphasis:{label:{show:true,fontSize:14,fontWeight:"bold"}},data:md}]});
-  mapChart.off("click");mapChart.on("click",function(p){if(p.data&&p.data.shortName){document.getElementById("selProvince").value=p.data.shortName;applyFilter()}})
+function eduMatches(userEdu, posEdu) {
+  if (!userEdu) return true;
+  var ul = getEduLevel(userEdu);
+  if (ul === 0) return true;
+  if (posEdu.indexOf("仅限") !== -1) return posEdu.indexOf(userEdu.replace("及以上","")) !== -1;
+  return ul >= getEduLevel(posEdu);
 }
 
-function renderTrends(){
-  if(typeof echarts==="undefined"||!document.getElementById("tab-trend").classList.contains("active"))return;
-  if(!filteredData.length)return;
+function scoreOne(pos, profile) {
+  if (!profile || !profile.enabled) return null;
+  var s = 0, details = [];
 
-  // Top10 省份
-  if(!trendCharts.t1)trendCharts.t1=echarts.init(document.getElementById("chartTrend1"));
-  var pc={};filteredData.forEach(function(r){pc[r.r]=(pc[r.r]||0)+1});
-  var t10=Object.keys(pc).map(function(k){return{name:k,value:pc[k]}}).sort(function(a,b){return b.value-a.value}).slice(0,10);
-  trendCharts.t1.setOption({title:{text:"岗位数量 Top10 省份",left:"center",textStyle:{fontSize:14,color:"#2c3e50"}},tooltip:{trigger:"axis"},grid:{left:70,right:30,top:50,bottom:70},xAxis:{type:"category",data:t10.map(function(d){return d.name}),axisLabel:{rotate:45,fontSize:11}},yAxis:{type:"value",name:"岗位数"},series:[{type:"bar",data:t10.map(function(d){return d.value}),itemStyle:{color:"#2980b9"},barWidth:"50%"}]});
+  // 1. 专业匹配 0-30
+  if (profile.major) {
+    var kw = profile.major.split(/[,，\s]+/).filter(Boolean);
+    if (kw.length) {
+      if (pos.m.indexOf("不限") !== -1 || pos.m === "") { s += 15; details.push({d:"专业",p:15,m:30,n:"不限专业"}); }
+      else {
+        var mc = 0; kw.forEach(function(k) { if (pos.m.indexOf(k) !== -1) mc++; });
+        var mp = Math.min(mc * 10, 30); s += mp;
+        details.push({d:"专业",p:mp,m:30,n:"匹配"+mc+"/"+kw.length+"词"});
+      }
+    }
+  }
 
-  // 机构层级分布
-  if(!trendCharts.t2)trendCharts.t2=echarts.init(document.getElementById("chartTrend2"));
-  var lc={};filteredData.forEach(function(r){var l=r.l||"其他";lc[l]=(lc[l]||0)+1});
-  trendCharts.t2.setOption({title:{text:"机构层级分布",left:"center",textStyle:{fontSize:14,color:"#2c3e50"}},tooltip:{trigger:"item",formatter:"{b}: {c} ({d}%)"},series:[{type:"pie",radius:"60%",center:["50%","50%"],data:Object.keys(lc).map(function(k){return{name:k,value:lc[k]}}),label:{formatter:"{b}\n{d}%"}}]});
+  // 2. 学历匹配 0-20
+  if (profile.edu) {
+    if (eduMatches(profile.edu, pos.e)) { s += 20; details.push({d:"学历",p:20,m:20,n:"满足"}); }
+    else { details.push({d:"学历",p:0,m:20,n:"要求"+pos.e}); }
+  }
 
-  // 学历分布
-  if(!trendCharts.p1)trendCharts.p1=echarts.init(document.getElementById("chartPie1"));
-  var ec={};filteredData.forEach(function(r){var e=r.e||"其他";if(e.includes("本科")&&!e.includes("硕士")&&!e.includes("博士"))e="本科";else if(e.includes("硕士")&&!e.includes("博士"))e="硕士及以上";else if(e.includes("博士"))e="博士";else if(e.includes("大专"))e="大专";ec[e]=(ec[e]||0)+1});
-  trendCharts.p1.setOption({title:{text:"学历要求分布（当前筛选）",left:"center",textStyle:{fontSize:14,color:"#2c3e50"}},tooltip:{trigger:"item",formatter:"{b}: {c} ({d}%)"},legend:{bottom:0},series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.keys(ec).map(function(k){return{name:k,value:ec[k]}}),label:{formatter:"{b}\n{d}%"}}]});
+  // 3. 招录人数 0-20
+  var cp = Math.min(pos.c * 4, 20); s += cp;
+  details.push({d:"招录",p:cp,m:20,n:pos.c+"人"});
 
-  // 政治面貌分布
-  if(!trendCharts.p2)trendCharts.p2=echarts.init(document.getElementById("chartPie2"));
-  var pyc={};filteredData.forEach(function(r){var p=r.p||"不限";if(p.includes("党员")&&p.includes("团员"))p="党员/团员";else if(p.includes("党员"))p="中共党员";else if(p.includes("团员"))p="共青团员";else p="不限";pyc[p]=(pyc[p]||0)+1});
-  trendCharts.p2.setOption({title:{text:"政治面貌要求分布（当前筛选）",left:"center",textStyle:{fontSize:14,color:"#2c3e50"}},tooltip:{trigger:"item",formatter:"{b}: {c} ({d}%)"},legend:{bottom:0},series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.keys(pyc).map(function(k){return{name:k,value:pyc[k]}}),label:{formatter:"{b}\n{d}%"}}]})
+  // 4. 政治面貌 0-15
+  if (profile.party) {
+    if (profile.party === "党员") { s += 15; details.push({d:"政治",p:15,m:15,n:"党员优势"}); }
+    else {
+      if (pos.p.indexOf("党员") !== -1 && pos.p.indexOf("不限") === -1) { details.push({d:"政治",p:0,m:15,n:"要求党员"}); }
+      else { s += 15; details.push({d:"政治",p:15,m:15,n:"满足"}); }
+    }
+  }
+
+  // 5. 基层经验 0-15
+  if (profile.exp) {
+    if (profile.exp === "无") {
+      if (!pos.x || pos.x === "无限制" || pos.x.indexOf("不限") !== -1) { s += 15; details.push({d:"经验",p:15,m:15,n:"无限制"}); }
+      else { details.push({d:"经验",p:0,m:15,n:"要求"+pos.x}); }
+    } else {
+      if (!pos.x || pos.x === "无限制" || pos.x.indexOf("不限") !== -1) { s += 15; details.push({d:"经验",p:15,m:15,n:"满足"}); }
+      else if (pos.x.indexOf(profile.exp.replace("及以上","")) !== -1) { s += 15; details.push({d:"经验",p:15,m:15,n:"匹配"}); }
+      else { details.push({d:"经验",p:0,m:15,n:"不匹配"}); }
+    }
+  }
+
+  return { total: s, pct: Math.round(s/100*100), details: details };
 }
 
-function switchTab(n){
-  document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active")});
-  document.querySelectorAll(".tab-content").forEach(function(c){c.classList.remove("active")});
-  document.querySelectorAll(".tab-btn")[n==="map"?0:n==="trend"?1:2].classList.add("active");
-  document.getElementById("tab-"+n).classList.add("active")
+function scoreAll(positions, profile) {
+  if (!profile || !profile.enabled) return positions;
+  return positions.map(function(p) { var r = scoreOne(p, profile); p._score = r ? r.total : null; p._detail = r ? r.details : null; return p; });
 }
-function onTabSwitch(n){
-  if(n==="trend")setTimeout(renderTrends,200);
-  if(n==="map")setTimeout(function(){if(typeof echarts!=="undefined"&&mapChart&&!mapChart.isDisposed())mapChart.resize()},200)
+
+function scoreGrade(pts) {
+  if (pts === null || pts === undefined) return "";
+  if (pts >= 80) return "score-a";
+  if (pts >= 60) return "score-b";
+  if (pts >= 40) return "score-c";
+  return "score-d";
 }
-window.addEventListener("resize",function(){
-  if(typeof echarts==="undefined")return;
-  if(mapChart&&!mapChart.isDisposed()&&document.getElementById("tab-map").classList.contains("active"))mapChart.resize();
-  if(document.getElementById("tab-trend").classList.contains("active"))Object.values(trendCharts).forEach(function(c){if(c&&!c.isDisposed())c.resize()})
+
+function scoreLabel(pts) {
+  if (pts === null || pts === undefined) return "";
+  if (pts >= 80) return "⭐强烈推荐";
+  if (pts >= 60) return "👍推荐";
+  if (pts >= 40) return "💡可考虑";
+  return "⚡竞争激烈";
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ANALYTICS — 统计分析
+// ═══════════════════════════════════════════════════════════════
+function groupCount(data, key) {
+  var res = {};
+  data.forEach(function(r) { var k = r[key] || "未知"; res[k] = (res[k] || 0) + 1; });
+  return res;
+}
+function rebuildProvinceStats() {
+  var ps = {};
+  STATE.raw.forEach(function(r) {
+    var p = r.r;
+    if (!ps[p]) ps[p] = { total: 0, politic: 0 };
+    ps[p].total++;
+    if (/政治学|国际政治|国际关系|外交学/.test(r.m)) ps[p].politic++;
+  });
+  STATE.provinceStats = ps;
+}
+function buildAnalytics(filtered) {
+  return {
+    provinceCounts: groupCount(filtered, "r"),
+    topProvinces: getTopN(filtered, "r", 10),
+    levelCounts: groupCount(filtered, "l"),
+    attrCounts: groupCount(filtered, "a"),
+    eduCounts: normalizeEdu(filtered),
+    partyCounts: normalizeParty(filtered),
+    expCounts: normalizeExp(filtered),
+    deptTop10: getTopN(filtered, "d", 10)
+  };
+}
+function getTopN(data, key, n) {
+  var counts = groupCount(data, key);
+  return Object.keys(counts).map(function(k) { return { name: k, value: counts[k] }; })
+    .sort(function(a, b) { return b.value - a.value; }).slice(0, n);
+}
+function normalizeEdu(data) {
+  var ec = {};
+  data.forEach(function(r) {
+    var e = r.e || "其他";
+    if (e.indexOf("本科") !== -1 && e.indexOf("硕士") === -1 && e.indexOf("博士") === -1) e = "本科";
+    else if (e.indexOf("硕士") !== -1 && e.indexOf("博士") === -1) e = "硕士及以上";
+    else if (e.indexOf("博士") !== -1) e = "博士";
+    else if (e.indexOf("大专") !== -1) e = "大专";
+    ec[e] = (ec[e] || 0) + 1;
+  });
+  return ec;
+}
+function normalizeParty(data) {
+  var pc = {};
+  data.forEach(function(r) {
+    var p = r.p || "不限";
+    if (p.indexOf("党员") !== -1 && p.indexOf("团员") !== -1) p = "党员/团员";
+    else if (p.indexOf("党员") !== -1) p = "中共党员";
+    else if (p.indexOf("团员") !== -1) p = "共青团员";
+    else p = "不限";
+    pc[p] = (pc[p] || 0) + 1;
+  });
+  return pc;
+}
+function normalizeExp(data) {
+  var xc = {};
+  data.forEach(function(r) {
+    var x = r.x || "无限制";
+    if (x.indexOf("不限") !== -1 || x === "无限制") x = "无限制";
+    else if (x.indexOf("二年") !== -1) x = "二年及以上";
+    else if (x.indexOf("三年") !== -1) x = "三年及以上";
+    else if (x.indexOf("一年") !== -1) x = "一年及以上";
+    else if (x.indexOf("五年") !== -1) x = "五年及以上";
+    xc[x] = (xc[x] || 0) + 1;
+  });
+  return xc;
+}
+function computeStats(filtered) {
+  return {
+    totalPositions: filtered.length,
+    totalRecruits: filtered.reduce(function(s, r) { return s + r.c; }, 0),
+    totalProvinces: new Set(filtered.map(function(r) { return r.r; })).size
+  };
+}
+// 评分统计
+function computeScoreStats(filtered) {
+  if (!STATE.profile.enabled) return null;
+  var scored = filtered.filter(function(r) { return r._score !== null && r._score !== undefined; });
+  if (!scored.length) return null;
+  var sum = scored.reduce(function(s, r) { return s + r._score; }, 0);
+  var avg = Math.round(sum / scored.length);
+  var dist = { "强烈推荐(≥80)": 0, "推荐(60-79)": 0, "可考虑(40-59)": 0, "竞争激烈(<40)": 0 };
+  scored.forEach(function(r) {
+    if (r._score >= 80) dist["强烈推荐(≥80)"]++;
+    else if (r._score >= 60) dist["推荐(60-79)"]++;
+    else if (r._score >= 40) dist["可考虑(40-59)"]++;
+    else dist["竞争激烈(<40)"]++;
+  });
+  return { avg: avg, dist: dist, scored: scored.length };
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RECOMPUTE — 数据管道
+// ═══════════════════════════════════════════════════════════════
+function recompute() {
+  STATE.filtered = applyFilters(STATE.raw, STATE.filters);
+  if (STATE.profile.enabled) STATE.filtered = scoreAll(STATE.filtered, STATE.profile);
+  STATE.analytics = buildAnalytics(STATE.filtered);
+}
+function dataChanged() {
+  rebuildProvinceStats();
+  rebuildDropdown();
+  STATE.meta.totalPositions = STATE.raw.length;
+  STATE.meta.totalProvinces = Object.keys(STATE.provinceStats).length;
+  updateStatsUI();
+  renderAll();
+}
+function filterChanged() {
+  recompute();
+  updateStatsUI();
+  renderAll();
+}
+function rebuildDropdown() {
+  var sel = document.getElementById("selProvince");
+  sel.innerHTML = '<option value="">全部省份</option>';
+  Object.keys(STATE.provinceStats).sort().forEach(function(p) {
+    var o = document.createElement("option"); o.value = p;
+    o.textContent = p + " (" + STATE.provinceStats[p].total + "岗)";
+    sel.appendChild(o);
+  });
+}
+function updateStatsUI() {
+  var f = STATE.filtered;
+  var stats = computeStats(f);
+  document.getElementById("statPos").textContent = stats.totalPositions;
+  document.getElementById("statRec").textContent = stats.totalRecruits + "人";
+  document.getElementById("statProv").textContent = stats.totalProvinces;
+  // 评分统计
+  var si = document.getElementById("statScoreItem");
+  if (STATE.profile.enabled) {
+    si.style.display = "flex";
+    var ss = computeScoreStats(f);
+    document.getElementById("statScore").textContent = ss ? ss.avg + "分" : "—";
+  } else {
+    si.style.display = "none";
+  }
+}
+function getProvinceDistribution() {
+  var dist = {}, fm = {};
+  STATE.filtered.forEach(function(r) { fm[r.r] = (fm[r.r] || 0) + 1; });
+  Object.keys(STATE.provinceStats).forEach(function(s) {
+    var fullName = STATE.provinceMap[s] || s;
+    dist[s] = { name: fullName, shortName: s, filtered: fm[s] || 0, total: STATE.provinceStats[s].total, politic: STATE.provinceStats[s].politic };
+  });
+  return dist;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CHART UTILS
+// ═══════════════════════════════════════════════════════════════
+function echartsReady() { return typeof echarts !== "undefined"; }
+function destroyAllCharts() {
+  if (typeof destroyMapChart === "function") destroyMapChart();
+  if (typeof destroyTrendCharts === "function") destroyTrendCharts();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  EXCEL UPLOAD
+// ═══════════════════════════════════════════════════════════════
+(function() {
+  var uz = document.getElementById("uploadZone"), fi = document.getElementById("fileInput");
+  uz.addEventListener("click", function() { fi.click(); });
+  fi.addEventListener("change", function() { handleFiles(this.files); });
+  uz.addEventListener("dragover", function(e) { e.preventDefault(); uz.classList.add("dragover"); });
+  uz.addEventListener("dragleave", function() { uz.classList.remove("dragover"); });
+  uz.addEventListener("drop", function(e) { e.preventDefault(); uz.classList.remove("dragover"); handleFiles(e.dataTransfer.files); });
+})();
+
+function handleFiles(files) {
+  if (!files || !files.length) return;
+  if (typeof XLSX === "undefined") { alert("Excel 读取组件(XLSX)尚未加载，请稍后重试"); return; }
+  var allRows = [], totalFiles = files.length, loaded = 0;
+  Array.from(files).forEach(function(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try { allRows = allRows.concat(parseExcelFile(e.target.result, file.name)); }
+      catch (err) { console.error(file.name + ": 解析失败", err); }
+      loaded++; if (loaded === totalFiles) finishUpload(allRows);
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function parseExcelFile(data, fileName) {
+  var wb = XLSX.read(data, { type: "array" });
+  var ws = wb.Sheets[wb.SheetNames[0]];
+  var rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+  if (!rows.length) return [];
+  var headers = Object.keys(rows[0]);
+  var testKws = ["部门名称","招考职位","职位名称","专业","学历","工作地点","地区","省份"];
+  var matched = {}, uniqueCols = {};
+  testKws.forEach(function(kw) { for (var i = 0; i < headers.length; i++) { if (headers[i].indexOf(kw) !== -1) { matched[kw] = headers[i]; break; } } });
+  Object.values(matched).forEach(function(v) { uniqueCols[v] = true; });
+  if (Object.keys(matched).length < 3 || Object.keys(uniqueCols).length < 3) {
+    var rawRows = XLSX.utils.sheet_to_json(ws, { defval: "", header: 1 });
+    if (rawRows.length >= 2) {
+      var newHeaders = rawRows[1]; rows = [];
+      for (var r = 2; r < rawRows.length; r++) {
+        var obj = {};
+        for (var c = 0; c < newHeaders.length; c++) obj[String(newHeaders[c] || "")] = rawRows[r][c] !== undefined ? rawRows[r][c] : "";
+        rows.push(obj);
+      }
+      if (rows.length > 0) { headers = Object.keys(rows[0]); console.warn(fileName + ": 自动跳过说明行"); }
+    }
+  }
+  function findCol(keywords) { for (var i = 0; i < headers.length; i++) { var h = headers[i]; for (var k = 0; k < keywords.length; k++) { if (h.indexOf(keywords[k]) !== -1) return h; } } return null; }
+  var mDept = findCol(["部门名称"]), mTitle = findCol(["招考职位","职位名称"]),
+      mLevel = findCol(["机构层级"]), mAttr = findCol(["职位属性"]),
+      mMajor = findCol(["专业"]), mEdu = findCol(["学历"]),
+      mParty = findCol(["政治面貌"]), mExp = findCol(["基层工作最低年限","基层经验"]),
+      mCount = findCol(["招考人数","招录人数"]), mRegion = findCol(["地区","省份"]),
+      mLocation = findCol(["工作地点"]);
+  if (!mMajor) { console.warn(fileName + ": 未找到「专业」列，跳过"); return []; }
+  var result = [];
+  rows.forEach(function(row) {
+    var region = String(row[mRegion] || "");
+    if (!region && mLocation) { var loc = String(row[mLocation] || ""); for (var s in STATE.provinceMap) { if (loc.indexOf(s) !== -1) { region = s; break; } } }
+    if (!region) return;
+    var count = parseInt(row[mCount]) || 1;
+    result.push({ d:String(row[mDept]||""), t:String(row[mTitle]||""), l:String(row[mLevel]||""), a:String(row[mAttr]||""), m:String(row[mMajor]||""), e:String(row[mEdu]||""), p:String(row[mParty]||""), x:String(row[mExp]||""), c:count, r:region });
+  });
+  console.log(fileName + ": 解析 " + result.length + " 行");
+  return result;
+}
+
+function finishUpload(allRows) {
+  if (!allRows.length) { alert("未能从文件中解析出有效数据。请确认文件格式与国考/省考职位表一致。"); return; }
+  STATE.raw = allRows;
+  STATE.meta.userDataLoaded = true;
+  STATE.meta.dataYear = new Date().toISOString().slice(0, 10);
+  document.getElementById("dataBadge").textContent = "📎 用户数据 (" + allRows.length + "岗)";
+  document.getElementById("dataBadge").className = "data-badge user";
+  document.getElementById("statYear").textContent = "上传";
+  STATE.sort.key = null; STATE.sort.asc = true;
+  STATE.filters = { province: "", major: "", edu: "", party: "", exp: "" };
+  document.getElementById("selProvince").value = "";
+  document.getElementById("selMajor").value = "";
+  document.getElementById("selEdu").value = "";
+  document.getElementById("selParty").value = "";
+  document.getElementById("selExp").value = "";
+  STATE.filtered = STATE.raw.slice();
+  dataChanged();
+  if (typeof destroyAllCharts === "function") destroyAllCharts();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TABLE VIEW
+// ═══════════════════════════════════════════════════════════════
+function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function renderTable() {
+  var data = STATE.filtered;
+  var tbody = document.getElementById("tableBody");
+  var info = document.getElementById("tableInfo");
+  var scoring = STATE.profile.enabled;
+  // 显示/隐藏评分列
+  document.getElementById("thScore").style.display = scoring ? "" : "none";
+  var colSpan = scoring ? 10 : 9;
+
+  if (!data.length) {
+    info.textContent = "暂无数据，请上传 Excel 职位表";
+    tbody.innerHTML = '<tr><td colspan="'+colSpan+'" style="text-align:center;padding:60px;color:#999">📂 请拖拽 Excel 文件到上方上传区<br><small>支持国考/省考标准格式</small></td></tr>';
+    return;
+  }
+  var d = data.slice();
+  if (STATE.sort.key) {
+    d.sort(function(a, b) {
+      var key = STATE.sort.key;
+      var va, vb;
+      if (key === "_score") { va = a._score !== null ? a._score : -1; vb = b._score !== null ? b._score : -1; }
+      else if (key === "c") { va = Number(a[key]); vb = Number(b[key]); }
+      else { va = String(a[key] || ""); vb = String(b[key] || ""); }
+      if (va < vb) return STATE.sort.asc ? -1 : 1;
+      if (va > vb) return STATE.sort.asc ? 1 : -1;
+      return 0;
+    });
+  }
+  var disp = d.slice(0, 500);
+  info.textContent = "显示 " + disp.length + " / " + data.length + " 条" + (data.length > 500 ? "（前500条）" : "");
+
+  if (scoring) {
+    var ss = computeScoreStats(data);
+    document.getElementById("scoreSummary").textContent = ss ? "均分 "+ss.avg+" | 推荐 "+(ss.dist["强烈推荐(≥80)"]+ss.dist["推荐(60-79)"])+" 个岗位" : "";
+  } else {
+    document.getElementById("scoreSummary").textContent = "";
+  }
+
+  tbody.innerHTML = disp.map(function(r) {
+    var row = "";
+    if (scoring) {
+      var g = scoreGrade(r._score), l = scoreLabel(r._score);
+      row += '<td><span class="score-cell ' + g + '">' + (r._score !== null ? l : "—") + '</span></td>';
+    }
+    row += "<td>"+esc(r.d)+"</td><td>"+esc(r.t)+"</td><td>"+esc(r.l)+"</td><td>"+esc(r.e)+"</td><td>"+(esc(r.p)||"不限")+"</td><td>"+(esc(r.x)||"无限制")+"</td><td>"+r.c+"</td><td>"+esc(r.r)+"</td>";
+    return "<tr>" + row + "</tr>";
+  }).join("");
+}
+
+function setSort(key) {
+  if (STATE.sort.key === key) STATE.sort.asc = !STATE.sort.asc;
+  else { STATE.sort.key = key; STATE.sort.asc = (key === "_score" ? false : true); }
+  renderTable();
+  updateSortArrows();
+}
+function updateSortArrows() {
+  document.querySelectorAll(".table-wrap th").forEach(function(th) {
+    var key = th.getAttribute("data-sort");
+    if (!key) return;
+    th.textContent = th.textContent.replace(/ [▴▾]/g, "");
+  });
+  if (STATE.sort.key) {
+    var activeTh = document.querySelector('.table-wrap th[data-sort="' + STATE.sort.key + '"]');
+    if (activeTh) activeTh.textContent += STATE.sort.asc ? " ▴" : " ▾";
+  }
+}
+document.addEventListener("DOMContentLoaded", function() {
+  var thead = document.querySelector(".table-wrap thead");
+  if (thead) { thead.addEventListener("click", function(e) { var th = e.target.closest("th"); if (!th) return; var key = th.getAttribute("data-sort"); if (key) setSort(key); }); }
 });
 
-function init(){
-  rebuildProvSum();
-  document.getElementById("chartStatus").textContent=typeof echarts!=="undefined"?"图表就绪":"图表组件加载中...";
-  Object.keys(DATA.provinceStats).sort().forEach(function(p){var o=document.createElement("option");o.value=p;o.textContent=p+" ("+DATA.provinceStats[p].total+"岗)";document.getElementById("selProvince").appendChild(o)});
-  filteredData=DATA.positions;updateStats();renderTable();renderMap();
-  document.querySelectorAll(".tab-btn").forEach(function(b,i){b.addEventListener("click",function(){onTabSwitch(i===0?"map":i===1?"trend":"table")})})
+function exportCSV() {
+  var data = STATE.filtered;
+  if (!data.length) { alert("没有数据可导出"); return; }
+  var scoring = STATE.profile.enabled;
+  var headers = scoring ? ["评分","部门名称","职位名称","机构层级","学历要求","政治面貌","基层经验","招考人数","省份"] : ["部门名称","职位名称","机构层级","学历要求","政治面貌","基层经验","招考人数","省份"];
+  var keys = scoring ? ["_score","d","t","l","e","p","x","c","r"] : ["d","t","l","e","p","x","c","r"];
+  var csv = "﻿" + headers.join(",") + "\n";
+  data.forEach(function(r) {
+    csv += keys.map(function(k) { var v = (k === "_score") ? (r._score !== null ? scoreLabel(r._score) : "") : (r[k] || ""); return '"' + String(v).replace(/"/g,'""') + '"'; }).join(",") + "\n";
+  });
+  var blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a"); a.href = url;
+  a.download = "SheetLens筛选结果_" + new Date().toISOString().slice(0,10) + ".csv";
+  a.click(); URL.revokeObjectURL(url);
 }
 
-window._echartsReady=function(){document.getElementById("chartStatus").textContent="图表就绪";if(!mapChart||mapChart.isDisposed())renderMap()};
-init();
+// ═══════════════════════════════════════════════════════════════
+//  MAP VIEW
+// ═══════════════════════════════════════════════════════════════
+var mapChart = null, chinaGeoLoaded = false;
+function loadChinaGeo() {
+  return fetch("https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json")
+    .then(function(r) { return r.json(); }).then(function(geo) { echarts.registerMap("china", geo); chinaGeoLoaded = true; });
+}
+function destroyMapChart() { if (mapChart && !mapChart.isDisposed()) { mapChart.dispose(); mapChart = null; } chinaGeoLoaded = false; }
+function renderMap() {
+  var el = document.getElementById("chartMap"); if (!el) return;
+  if (!STATE.raw.length) { el.innerHTML = '<div style="text-align:center;padding-top:180px;color:#999"><p style="font-size:48px;margin-bottom:16px">📂</p><p style="font-size:18px">请上传 Excel 职位表</p><p style="font-size:13px">拖拽 .xlsx 文件到上方上传区</p></div>'; return; }
+  if (!echartsReady()) { el.innerHTML = '<div style="text-align:center;padding-top:200px;color:#999"><p style="font-size:18px">🗺 图表组件加载中...</p></div>'; return; }
+  if (!mapChart || mapChart.isDisposed()) mapChart = echarts.init(el);
+  var provDist = getProvinceDistribution();
+  var mapData = Object.keys(provDist).map(function(s) { var d = provDist[s]; return { name:d.name, value:d.filtered, total:d.total, politic:d.politic, shortName:d.shortName }; });
+  var maxVal = Math.max.apply(null, mapData.map(function(d) { return d.value; }).concat([1]));
+  var opt = {
+    title: { text: "各省岗位分布（点击省份筛选）", left: "center", top: 8, textStyle: { fontSize: 16, color: "#2c3e50" } },
+    tooltip: { trigger: "item", formatter: function(p) { if (!p.data||!p.data.total) return (p.name||"")+"<br/>暂无数据"; return "<b>"+(p.data.shortName||p.name)+"</b><br/>当前筛选: "+(p.data.value||0)+" 岗<br/>全省总数: "+p.data.total+" 岗<br/>政治学相关: "+p.data.politic+" 岗"; } },
+    visualMap: { min:0, max:maxVal, text:["多","少"], inRange:{ color:["#e8f4fd","#b8d8f0","#6ab0de","#2980b9","#1a5276"] }, calculable:true, left:20, bottom:20 },
+    series: [{ type:"map", map:"china", roam:true, zoom:1.15, top:30, label:{ show:true, fontSize:10, color:"#555" }, emphasis:{ label:{ show:true, fontSize:14, fontWeight:"bold" } }, data:mapData }]
+  };
+  if (!chinaGeoLoaded) { mapChart.showLoading({ text: "加载地图数据..." }); loadChinaGeo().then(function() { mapChart.hideLoading(); mapChart.setOption(opt); }).catch(function() { mapChart.hideLoading(); mapChart.setOption({ title: { text: "地图加载失败，请检查网络连接", left:"center", top:"center", textStyle:{ color:"#999", fontSize:16 } } }); }); return; }
+  mapChart.setOption(opt);
+  mapChart.off("click"); mapChart.on("click", function(p) { if (p.data&&p.data.shortName) { document.getElementById("selProvince").value = p.data.shortName; handleFilterApply(); } });
+}
+window.addEventListener("resize", function() { if (mapChart&&!mapChart.isDisposed()&&document.getElementById("tab-map")&&document.getElementById("tab-map").classList.contains("active")) mapChart.resize(); });
+
+// ═══════════════════════════════════════════════════════════════
+//  TREND VIEW — 7个图表
+// ═══════════════════════════════════════════════════════════════
+var trendCharts = {};
+function destroyTrendCharts() { Object.keys(trendCharts).forEach(function(k) { if (trendCharts[k]&&!trendCharts[k].isDisposed()) trendCharts[k].dispose(); }); trendCharts = {}; }
+function getChart(id) { if (!trendCharts[id]||trendCharts[id].isDisposed()) { var el = document.getElementById(id); if (!el) return null; trendCharts[id] = echarts.init(el); } return trendCharts[id]; }
+
+function renderTrend() {
+  if (!echartsReady() || !STATE.filtered.length) return;
+  var A = STATE.analytics;
+
+  // 1. 岗位 Top10 省份（柱状图）
+  var c1 = getChart("chartBar1");
+  if (c1) c1.setOption({ title:{ text:"岗位数量 Top10 省份", left:"center", textStyle:{fontSize:14,color:"#2c3e50"} }, tooltip:{trigger:"axis"}, grid:{left:70,right:30,top:50,bottom:70}, xAxis:{type:"category",data:A.topProvinces.map(function(d){return d.name}),axisLabel:{rotate:45,fontSize:11}}, yAxis:{type:"value",name:"岗位数"}, series:[{type:"bar",data:A.topProvinces.map(function(d){return d.value}),itemStyle:{color:"#2980b9"},barWidth:"50%"}] });
+
+  // 2. 机构层级分布（饼图）
+  var c2 = getChart("chartPie1");
+  if (c2) c2.setOption({ title:{ text:"机构层级分布", left:"center", textStyle:{fontSize:14,color:"#2c3e50"} }, tooltip:{trigger:"item",formatter:"{b}: {c} ({d}%)"}, series:[{type:"pie",radius:"60%",center:["50%","50%"],data:Object.keys(A.levelCounts).map(function(k){return{name:k,value:A.levelCounts[k]}}),label:{formatter:"{b}\n{d}%"}}] });
+
+  // 3. 学历分布（环形）
+  var c3 = getChart("chartPie2");
+  if (c3) c3.setOption({ title:{ text:"学历要求分布", left:"center", textStyle:{fontSize:14,color:"#2c3e50"} }, tooltip:{trigger:"item",formatter:"{b}: {c} ({d}%)"}, legend:{bottom:0}, series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.keys(A.eduCounts).map(function(k){return{name:k,value:A.eduCounts[k]}}),label:{formatter:"{b}\n{d}%"}}] });
+
+  // 4. 政治面貌分布（环形）
+  var c4 = getChart("chartPie3");
+  if (c4) c4.setOption({ title:{ text:"政治面貌要求", left:"center", textStyle:{fontSize:14,color:"#2c3e50"} }, tooltip:{trigger:"item",formatter:"{b}: {c} ({d}%)"}, legend:{bottom:0}, series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.keys(A.partyCounts).map(function(k){return{name:k,value:A.partyCounts[k]}}),label:{formatter:"{b}\n{d}%"}}] });
+
+  // 5. 职位属性分布（环形）
+  var c5 = getChart("chartPie4");
+  if (c5) c5.setOption({ title:{ text:"职位属性分布", left:"center", textStyle:{fontSize:14,color:"#2c3e50"} }, tooltip:{trigger:"item",formatter:"{b}: {c} ({d}%)"}, legend:{bottom:0}, series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.keys(A.attrCounts).map(function(k){return{name:k||"未分类",value:A.attrCounts[k]}}),label:{formatter:"{b}\n{d}%"}}] });
+
+  // 6. 部门 Top10（横向柱状图）
+  var c6 = getChart("chartBar2");
+  if (c6) c6.setOption({ title:{ text:"招录部门 Top10", left:"center", textStyle:{fontSize:14,color:"#2c3e50"} }, tooltip:{trigger:"axis"}, grid:{left:120,right:30,top:40,bottom:70}, xAxis:{type:"value",name:"岗位数"}, yAxis:{type:"category",data:A.deptTop10.map(function(d){return d.name}).reverse(),axisLabel:{fontSize:11},inverse:true}, series:[{type:"bar",data:A.deptTop10.map(function(d){return d.value}).reverse(),itemStyle:{color:"#1a5276"},barWidth:"60%"}] });
+
+  // 7. 基层经验分布（环形）
+  var c7 = getChart("chartPie5");
+  if (c7) c7.setOption({ title:{ text:"基层经验要求", left:"center", textStyle:{fontSize:14,color:"#2c3e50"} }, tooltip:{trigger:"item",formatter:"{b}: {c} ({d}%)"}, legend:{bottom:0}, series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.keys(A.expCounts).map(function(k){return{name:k,value:A.expCounts[k]}}),label:{formatter:"{b}\n{d}%"}}] });
+}
+window.addEventListener("resize", function() { if (!document.getElementById("tab-trend")||!document.getElementById("tab-trend").classList.contains("active")) return; Object.keys(trendCharts).forEach(function(k) { var c=trendCharts[k]; if (c&&!c.isDisposed()) c.resize(); }); });
+
+// ═══════════════════════════════════════════════════════════════
+//  APP CONTROLLER
+// ═══════════════════════════════════════════════════════════════
+var currentTab = "map";
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); if (b.getAttribute("data-tab")===tab) b.classList.add("active"); });
+  document.querySelectorAll(".tab-content").forEach(function(c) { c.classList.remove("active"); });
+  var el = document.getElementById("tab-"+tab); if (el) el.classList.add("active");
+  onTabChanged(tab);
+}
+function onTabChanged(tab) {
+  if (tab==="trend") setTimeout(function(){renderTrend();},200);
+  if (tab==="map") setTimeout(function(){if(echartsReady()&&mapChart&&!mapChart.isDisposed()) mapChart.resize();},200);
+}
+function renderAll() {
+  if (currentTab==="map") renderMap();
+  else if (currentTab==="trend") renderTrend();
+  else if (currentTab==="table") renderTable();
+}
+
+// 标签点击
+document.querySelectorAll(".tab-btn").forEach(function(btn) { btn.addEventListener("click", function() { var t=btn.getAttribute("data-tab"); if(t) switchTab(t); }); });
+
+// 筛选/重置
+document.getElementById("btnFilter").addEventListener("click", handleFilterApply);
+document.getElementById("btnReset").addEventListener("click", handleFilterReset);
+document.getElementById("btnExport").addEventListener("click", exportCSV);
+
+function handleFilterApply() {
+  STATE.filters.province = document.getElementById("selProvince").value;
+  STATE.filters.major = document.getElementById("selMajor").value.trim();
+  STATE.filters.edu = document.getElementById("selEdu").value;
+  STATE.filters.party = document.getElementById("selParty").value;
+  STATE.filters.exp = document.getElementById("selExp").value;
+  STATE.sort.key = null; STATE.sort.asc = true;
+  filterChanged();
+}
+function handleFilterReset() {
+  document.getElementById("selProvince").value="";
+  document.getElementById("selMajor").value="";
+  document.getElementById("selEdu").value="";
+  document.getElementById("selParty").value="";
+  document.getElementById("selExp").value="";
+  STATE.filters = { province:"", major:"", edu:"", party:"", exp:"" };
+  STATE.sort.key = null; STATE.sort.asc = true;
+  STATE.filtered = STATE.raw.slice();
+  if (STATE.profile.enabled) STATE.filtered = scoreAll(STATE.filtered, STATE.profile);
+  recompute(); updateStatsUI(); renderAll();
+}
+
+// 个人画像面板
+document.getElementById("profileToggle").addEventListener("click", function() {
+  var body = document.getElementById("profileBody");
+  var arrow = document.getElementById("profileArrow");
+  if (body.classList.contains("open")) { body.classList.remove("open"); arrow.textContent = "▶ 展开"; }
+  else { body.classList.add("open"); arrow.textContent = "▼ 收起"; }
+});
+
+// 评分按钮
+document.getElementById("btnScore").addEventListener("click", function() {
+  STATE.profile.enabled = true;
+  STATE.profile.major = document.getElementById("myMajor").value.trim();
+  STATE.profile.edu = document.getElementById("myEdu").value;
+  STATE.profile.party = document.getElementById("myParty").value;
+  STATE.profile.exp = document.getElementById("myExp").value;
+  if (!STATE.profile.major && !STATE.profile.edu && !STATE.profile.party && !STATE.profile.exp) { alert("请至少填写一项个人画像信息"); STATE.profile.enabled = false; return; }
+  STATE.sort.key = "_score"; STATE.sort.asc = false;
+  filterChanged();
+});
+document.getElementById("btnScoreOff").addEventListener("click", function() {
+  STATE.profile.enabled = false;
+  STATE.sort.key = null; STATE.sort.asc = true;
+  filterChanged();
+});
+
+function init() {
+  document.getElementById("chartStatus").textContent = echartsReady() ? "图表就绪" : "图表组件加载中...";
+  STATE.filtered = STATE.raw.slice();
+  updateStatsUI(); renderMap();
+  if (!echartsReady()) { var iv = setInterval(function() { if (echartsReady()) { clearInterval(iv); document.getElementById("chartStatus").textContent="图表就绪"; renderMap(); } }, 500); setTimeout(function(){clearInterval(iv);},10000); }
+}
+if (document.readyState==="loading") document.addEventListener("DOMContentLoaded", init); else init();
 </script>
-<script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js" onload="window._echartsReady()"></script>
 </body>
 </html>
