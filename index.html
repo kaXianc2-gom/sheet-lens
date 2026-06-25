@@ -330,6 +330,7 @@ function handleFiles(files){
         });
         Object.values(matched).forEach(function(v){uniqueCols[v]=true});
         if(Object.keys(matched).length<3||Object.keys(uniqueCols).length<3){
+          // 手动跳过说明行: 用 header:1 获取数组，取第二行做表头
           var rawRows=XLSX.utils.sheet_to_json(ws,{defval:"",header:1});
           if(rawRows.length>=2){
             var newHeaders=rawRows[1];
@@ -441,7 +442,7 @@ function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").repl
 
 function updateStats(){
   document.getElementById("statPos").textContent=filteredData.length;
-  document.getElementById("statRec").textContent=(filteredData.length?filteredData.reduce(function(s,r){return s+r.c},0)+"人":"—");
+  document.getElementById("statRec").textContent=filteredData.reduce(function(s,r){return s+r.c},0)+"人";
   document.getElementById("statProv").textContent=new Set(filteredData.map(function(r){return r.r})).size
 }
 
@@ -496,18 +497,28 @@ async function renderMap(){
 
 function renderTrends(){
   if(typeof echarts==="undefined"||!document.getElementById("tab-trend").classList.contains("active"))return;
-  if(!DATA.trends){document.getElementById("chartTrend1").innerHTML="<div style='text-align:center;padding-top:140px;color:#999'><p>请先上传职位表数据</p></div>";return}
-  var t=DATA.trends;
+  if(!filteredData.length)return;
+
+  // Top10 省份
   if(!trendCharts.t1)trendCharts.t1=echarts.init(document.getElementById("chartTrend1"));
-  trendCharts.t1.setOption({title:{text:"国考历年招录与报考趋势",left:"center",textStyle:{fontSize:14,color:"#2c3e50"}},tooltip:{trigger:"axis"},legend:{bottom:0,data:["招录人数(万)","报考人数(万)","竞争比"]},grid:{left:50,right:50,top:50,bottom:40},xAxis:{type:"category",data:t.national.years.map(String)},yAxis:[{type:"value",name:"万人"},{type:"value",name:"竞争比",min:0}],series:[{name:"招录人数(万)",type:"bar",data:t.national.recruitment,itemStyle:{color:"#2980b9"},barWidth:"30%"},{name:"报考人数(万)",type:"line",data:t.national.applicants,itemStyle:{color:"#e67e22"},lineStyle:{width:2}},{name:"竞争比",type:"line",yAxisIndex:1,data:t.national.competition,itemStyle:{color:"#e74c3c"},lineStyle:{width:2,type:"dashed"}}]});
+  var pc={};filteredData.forEach(function(r){pc[r.r]=(pc[r.r]||0)+1});
+  var t10=Object.keys(pc).map(function(k){return{name:k,value:pc[k]}}).sort(function(a,b){return b.value-a.value}).slice(0,10);
+  trendCharts.t1.setOption({title:{text:"岗位数量 Top10 省份",left:"center",textStyle:{fontSize:14,color:"#2c3e50"}},tooltip:{trigger:"axis"},grid:{left:70,right:30,top:50,bottom:70},xAxis:{type:"category",data:t10.map(function(d){return d.name}),axisLabel:{rotate:45,fontSize:11}},yAxis:{type:"value",name:"岗位数"},series:[{type:"bar",data:t10.map(function(d){return d.value}),itemStyle:{color:"#2980b9"},barWidth:"50%"}]});
+
+  // 机构层级分布
   if(!trendCharts.t2)trendCharts.t2=echarts.init(document.getElementById("chartTrend2"));
-  trendCharts.t2.setOption({title:{text:"竞争比变化趋势 (:1)",left:"center",textStyle:{fontSize:14,color:"#2c3e50"}},tooltip:{trigger:"axis"},legend:{bottom:0},grid:{left:50,right:30,top:50,bottom:40},xAxis:{type:"category",data:t.national.years.map(String)},yAxis:{type:"value",name:"竞争比"},series:[{name:"全国竞争比",type:"line",data:t.national.competition,smooth:true,itemStyle:{color:"#e74c3c"},areaStyle:{color:"rgba(231,76,60,0.1)"}}]});
+  var lc={};filteredData.forEach(function(r){var l=r.l||"其他";lc[l]=(lc[l]||0)+1});
+  trendCharts.t2.setOption({title:{text:"机构层级分布",left:"center",textStyle:{fontSize:14,color:"#2c3e50"}},tooltip:{trigger:"item",formatter:"{b}: {c} ({d}%)"},series:[{type:"pie",radius:"60%",center:["50%","50%"],data:Object.keys(lc).map(function(k){return{name:k,value:lc[k]}}),label:{formatter:"{b}\n{d}%"}}]});
+
+  // 学历分布
   if(!trendCharts.p1)trendCharts.p1=echarts.init(document.getElementById("chartPie1"));
   var ec={};filteredData.forEach(function(r){var e=r.e||"其他";if(e.includes("本科")&&!e.includes("硕士")&&!e.includes("博士"))e="本科";else if(e.includes("硕士")&&!e.includes("博士"))e="硕士及以上";else if(e.includes("博士"))e="博士";else if(e.includes("大专"))e="大专";ec[e]=(ec[e]||0)+1});
-  trendCharts.p1.setOption({title:{text:"学历要求分布（当前筛选）",left:"center",textStyle:{fontSize:14,color:"#2c3e50"}},tooltip:{trigger:"item",formatter:"{b}: {c} ({d}%)"},legend:{bottom:0},series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.entries(ec).map(function(e){return{name:e[0],value:e[1]}}),label:{formatter:"{b}\n{d}%"}}]});
+  trendCharts.p1.setOption({title:{text:"学历要求分布（当前筛选）",left:"center",textStyle:{fontSize:14,color:"#2c3e50"}},tooltip:{trigger:"item",formatter:"{b}: {c} ({d}%)"},legend:{bottom:0},series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.keys(ec).map(function(k){return{name:k,value:ec[k]}}),label:{formatter:"{b}\n{d}%"}}]});
+
+  // 政治面貌分布
   if(!trendCharts.p2)trendCharts.p2=echarts.init(document.getElementById("chartPie2"));
-  var pc={};filteredData.forEach(function(r){var p=r.p||"不限";if(p.includes("党员")&&p.includes("团员"))p="党员/团员";else if(p.includes("党员"))p="中共党员";else if(p.includes("团员"))p="共青团员";else p="不限";pc[p]=(pc[p]||0)+1});
-  trendCharts.p2.setOption({title:{text:"政治面貌要求分布（当前筛选）",left:"center",textStyle:{fontSize:14,color:"#2c3e50"}},tooltip:{trigger:"item",formatter:"{b}: {c} ({d}%)"},legend:{bottom:0},series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.entries(pc).map(function(e){return{name:e[0],value:e[1]}}),label:{formatter:"{b}\n{d}%"}}]})
+  var pyc={};filteredData.forEach(function(r){var p=r.p||"不限";if(p.includes("党员")&&p.includes("团员"))p="党员/团员";else if(p.includes("党员"))p="中共党员";else if(p.includes("团员"))p="共青团员";else p="不限";pyc[p]=(pyc[p]||0)+1});
+  trendCharts.p2.setOption({title:{text:"政治面貌要求分布（当前筛选）",left:"center",textStyle:{fontSize:14,color:"#2c3e50"}},tooltip:{trigger:"item",formatter:"{b}: {c} ({d}%)"},legend:{bottom:0},series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.keys(pyc).map(function(k){return{name:k,value:pyc[k]}}),label:{formatter:"{b}\n{d}%"}}]})
 }
 
 function switchTab(n){
