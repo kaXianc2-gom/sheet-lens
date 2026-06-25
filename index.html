@@ -330,8 +330,17 @@ function handleFiles(files){
         });
         Object.values(matched).forEach(function(v){uniqueCols[v]=true});
         if(Object.keys(matched).length<3||Object.keys(uniqueCols).length<3){
-          rows=XLSX.utils.sheet_to_json(ws,{defval:"",range:1});
-          if(rows.length>0){headers=Object.keys(rows[0]);console.warn(file.name+": 自动跳过说明行，使用第二行作为表头")}
+          var rawRows=XLSX.utils.sheet_to_json(ws,{defval:"",header:1});
+          if(rawRows.length>=2){
+            var newHeaders=rawRows[1];
+            rows=[];
+            for(var r=2;r<rawRows.length;r++){
+              var obj={};
+              for(var c=0;c<newHeaders.length;c++){obj[String(newHeaders[c]||'')]=rawRows[r][c]!==undefined?rawRows[r][c]:''}
+              rows.push(obj)
+            }
+            if(rows.length>0){headers=Object.keys(rows[0]);console.warn(file.name+": 自动跳过说明行，使用第二行作为表头")}
+          }
         }
 
         // 构建列索引映射: 列名→索引
