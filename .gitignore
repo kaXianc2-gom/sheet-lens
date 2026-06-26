@@ -1,14 +1,32 @@
-# 构建产物
-*.html
-!index.html
+# Dependencies
+node_modules/
 
 # Python
 __pycache__/
 *.pyc
 .venv/
+venv/
 
-# 临时文件
-*.tmp
-*~
-node_modules/
-package*.json
+# Build
+*.pyz
+build/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Local test data (keep sample)
+*.xlsx
+*.xls
+!examples/sample_data.xlsx

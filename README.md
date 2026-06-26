@@ -2,6 +2,19 @@
 
 单文件 HTML 工具，84KB，双击即用。拖拽上传国考/省考职位表，自动解析、筛选、评分、可视化、对比、导出。
 
+## 截图
+
+> 将下方截图保存至 `docs/` 目录：
+> - `docs/upload-map.png` — 上传界面 + 地图热力图
+> - `docs/filter-score.png` — 筛选条件 + 评分结果
+> - `docs/table-compare.png` — 岗位列表 + 对比弹窗
+> - `docs/dark-mode.png` — 暗色模式
+
+![上传与地图](docs/upload-map.png)
+![筛选与评分](docs/filter-score.png)
+![列表与对比](docs/table-compare.png)
+![暗色模式](docs/dark-mode.png)
+
 ## 功能全景
 
 ### 📂 数据导入
@@ -50,7 +63,7 @@
 
 1. 下载 `index.html`
 2. 双击在浏览器中打开
-3. 拖拽国考/省考 Excel 文件到上传区
+3. 拖拽 Excel 文件到上传区（或先用 `examples/sample_data.xlsx` 体验）
 4. 输入专业、学历等信息，自动筛选和评分
 
 ## 兼容性
