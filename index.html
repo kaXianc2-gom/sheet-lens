@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>SheetLens — 智能公考岗位筛选</title>
+<!-- CDN preconnect: saves ~300ms on first load -->
+<link rel="dns-prefetch" href="https://cdn.bootcdn.net">
+<link rel="preconnect" href="https://cdn.bootcdn.net" crossorigin>
+<link rel="dns-prefetch" href="https://geo.datav.aliyun.com">
+<link rel="preconnect" href="https://geo.datav.aliyun.com" crossorigin>
 <style>
 /* ═══════════════════════════════════════════
    DESIGN SYSTEM — 现代暖色
@@ -390,6 +395,17 @@ body {
 </style>
 </head>
 <body>
+<!-- Loading skeleton — disappears when CDN ready -->
+<div id="appLoader" style="position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity 0.3s">
+<div style="text-align:center">
+<div style="font-size:48px;margin-bottom:12px">🏛️</div>
+<div style="font-size:18px;font-weight:700;margin-bottom:4px">SheetLens</div>
+<div style="font-size:13px;color:var(--muted)">组件加载中…</div>
+<div style="width:120px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;overflow:hidden">
+<div id="loaderBar" style="height:100%;width:0%;background:var(--primary);border-radius:2px;transition:width 0.3s"></div>
+</div>
+</div>
+</div>
 
 <div class="header">
   <div class="header-brand">
@@ -759,7 +775,7 @@ function handleFiles(files){
   if(!valid.length){if(rejected.length||oversized.length)return;return;}
   files=valid;if(typeof XLSX==="undefined"){toast("⚠️ 组件加载中，请稍后重试","warn");return;}var allRows=[],totalFiles=files.length,loaded=0;Array.from(files).forEach(function(file){var reader=new FileReader();reader.onload=function(e){try{allRows=allRows.concat(parseExcelFile(e.target.result,file.name));}catch(err){console.error(file.name+":解析失败",err);}loaded++;if(loaded===totalFiles)finishUpload(allRows);};reader.readAsArrayBuffer(file);});}
 function parseExcelFile(data,fileName){var wb=XLSX.read(data,{type:"array"});var allResults=[];wb.SheetNames.forEach(function(sn){var ws=wb.Sheets[sn];if(!ws)return;var rows=XLSX.utils.sheet_to_json(ws,{defval:""});if(!rows.length)return;var headers=Object.keys(rows[0]);var testKws=["部门名称","招考职位","职位名称","专业","学历","工作地点","地区","省份"];var matched={},uniqueCols={};testKws.forEach(function(kw){for(var i=0;i<headers.length;i++){if(headers[i].indexOf(kw)!==-1){matched[kw]=headers[i];break;}}});Object.values(matched).forEach(function(v){uniqueCols[v]=true;});if(Object.keys(matched).length<3||Object.keys(uniqueCols).length<3){var rawRows=XLSX.utils.sheet_to_json(ws,{defval:"",header:1});if(rawRows.length>=2){var newHeaders=rawRows[1];rows=[];for(var r=2;r<rawRows.length;r++){var obj={};for(var c=0;c<newHeaders.length;c++)obj[String(newHeaders[c]||"")]=rawRows[r][c]!==undefined?rawRows[r][c]:"";rows.push(obj);}if(rows.length>0){headers=Object.keys(rows[0]);console.warn(fileName+"/"+sn+":自动跳过说明行");}}}function findCol(keywords){for(var i=0;i<headers.length;i++){var h=headers[i];for(var k=0;k<keywords.length;k++){if(h.indexOf(keywords[k])!==-1)return h;}}return null;}var mDept=findCol(["部门名称","招录机关","用人司局","招录单位","单位名称"]),mTitle=findCol(["招考职位","职位名称","招录职位","岗位名称","职位"]),mLevel=findCol(["机构层级","机构性质","单位层级","层级"]),mAttr=findCol(["职位属性","职位类别","岗位属性","考试类别"]),mMajor=findCol(["专业","学科"]),mEdu=findCol(["学历","文化程度","学位"]),mParty=findCol(["政治面貌"]),mExp=findCol(["基层工作最低年限","基层经验","基层工作年限","工作年限"]),mCount=findCol(["招考人数","招录人数","计划招录","招录计划","招录"]),mRegion=findCol(["地区","省份","所属地区","所在省份","工作所在地"]),mLocation=findCol(["工作地点","工作地址","地点","所在地"]);console.log(fileName+"/"+sn+":检测到表头",JSON.stringify(headers.slice(0,15)));if(!mMajor){console.warn(fileName+"/"+sn+":无「专业」列，跳过。表头="+JSON.stringify(headers));return;}var result=[];rows.forEach(function(row){var region=String(row[mRegion]||"");if(!region&&mLocation){var loc=String(row[mLocation]||"");for(var s in STATE.provinceMap){if(loc.indexOf(s)!==-1){region=s;break;}}}if(!region)return;var count=parseInt(row[mCount])||1;result.push({d:String(row[mDept]||""),t:String(row[mTitle]||""),l:String(row[mLevel]||""),a:String(row[mAttr]||""),m:String(row[mMajor]||""),e:String(row[mEdu]||""),p:String(row[mParty]||""),x:String(row[mExp]||""),c:count,r:region});});if(result.length){console.log(fileName+"/"+sn+":解析"+result.length+"行");allResults=allResults.concat(result);}});console.log(fileName+":共"+wb.SheetNames.length+"个Sheet，有效数据"+allResults.length+"行");return allResults;}
-function finishUpload(allRows){if(!allRows.length){toast("⚠️ 未能解析有效数据，请检查文件格式","warn");return;}STATE.raw=allRows;STATE.meta.userDataLoaded=true;STATE.meta.dataYear=new Date().toISOString().slice(0,10);document.getElementById("dataBadge").textContent="📎 用户数据 ("+formatNum(allRows.length)+"岗)";document.getElementById("dataBadge").className="data-badge user";document.getElementById("statYear").textContent="上传";STATE.sort.key=null;STATE.sort.asc=true;STATE.filters={province:"",major:"",edu:"",party:"",exp:""};STATE.filterHistory=[];updateUndoBtn();document.getElementById("selProvince").value="";document.getElementById("selMajor").value="";document.getElementById("selEdu").value="";document.getElementById("selParty").value="";document.getElementById("selExp").value="";STATE.filtered=STATE.raw.slice();buildMajorIndex();saveFiltersToStorage();document.getElementById("uploadZone").classList.remove("idle");STATE._prevStats=null;dataChanged();if(typeof destroyAllCharts==="function")destroyAllCharts();hideEmptyStates();toast("✅ 成功解析 "+formatNum(allRows.length)+" 个岗位","success");}
+function finishUpload(allRows){if(!allRows.length){toast("⚠️ 未能解析有效数据，请检查文件格式","warn");return;}STATE.raw=allRows;STATE.meta.userDataLoaded=true;STATE.meta.dataYear=new Date().toISOString().slice(0,10);document.getElementById("dataBadge").textContent="📎 用户数据 ("+formatNum(allRows.length)+"岗)";document.getElementById("dataBadge").className="data-badge user";document.getElementById("statYear").textContent="上传";STATE.sort.key=null;STATE.sort.asc=true;STATE.filters={province:"",major:"",edu:"",party:"",exp:""};STATE.filterHistory=[];updateUndoBtn();document.getElementById("selProvince").value="";document.getElementById("selMajor").value="";document.getElementById("selEdu").value="";document.getElementById("selParty").value="";document.getElementById("selExp").value="";STATE.filtered=STATE.raw.slice();buildMajorIndex();saveFiltersToStorage();document.getElementById("uploadZone").classList.remove("idle");STATE._prevStats=null;dataChanged();renderTable();if(typeof destroyAllCharts==="function")destroyAllCharts();hideEmptyStates();toast("✅ 成功解析 "+formatNum(allRows.length)+" 个岗位","success");}
 
 // ═══════════════════════════════════════════════════════════════
 //  TABLE VIEW
@@ -978,6 +994,21 @@ function clearOneFilter(key){
 }
 // 初始化
 function init(){
+  // Hide loading skeleton when CDN ready
+  (function hideLoader(){
+    var loader=document.getElementById("appLoader"),bar=document.getElementById("loaderBar");
+    if(!loader)return;
+    bar.style.width="30%";
+    var iv=setInterval(function(){
+      bar.style.width=bar.style.width==="30%"?"70%":"30%";
+      if(echartsReady()&&typeof XLSX!=="undefined"){
+        bar.style.width="100%";
+        setTimeout(function(){loader.style.opacity="0";setTimeout(function(){if(loader.parentNode)loader.parentNode.removeChild(loader);},300);},200);
+        clearInterval(iv);
+      }
+    },300);
+    setTimeout(function(){clearInterval(iv);if(loader.parentNode)loader.parentNode.removeChild(loader);},12000);
+  })();
   // Embedded test mode: ?test=1
   if(window.location.search.indexOf("test=1")!==-1)setTimeout(runTests,500);
   document.getElementById("chartStatus").textContent=echartsReady()?"图表就绪":"图表组件加载中...";
