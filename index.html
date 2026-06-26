@@ -620,6 +620,7 @@ function fuzzyMatch(text, pattern) {
   while(ti<text.length&&pi<pattern.length){if(text[ti]===pattern[pi])pi++;ti++;}
   return pi===pattern.length;
 }
+
 // ── 专业关键词索引 ──
 function buildMajorIndex(){
   var seen={};STATE.majorIndex=[];
@@ -744,7 +745,19 @@ function destroyAllCharts(){if(typeof destroyMapChart==="function")destroyMapCha
 //  UPLOAD
 // ═══════════════════════════════════════════════════════════════
 (function(){var uz=document.getElementById("uploadZone"),fi=document.getElementById("fileInput");uz.addEventListener("click",function(){fi.click();uz.classList.remove("idle");});fi.addEventListener("change",function(){handleFiles(this.files);});uz.addEventListener("dragover",function(e){e.preventDefault();uz.classList.add("dragover");uz.classList.remove("idle");});uz.addEventListener("dragleave",function(){uz.classList.remove("dragover");});uz.addEventListener("drop",function(e){e.preventDefault();uz.classList.remove("dragover");handleFiles(e.dataTransfer.files);});})();
-function handleFiles(files){if(!files||!files.length)return;if(typeof XLSX==="undefined"){toast("⚠️ 组件加载中，请稍后重试","warn");return;}var allRows=[],totalFiles=files.length,loaded=0;Array.from(files).forEach(function(file){var reader=new FileReader();reader.onload=function(e){try{allRows=allRows.concat(parseExcelFile(e.target.result,file.name));}catch(err){console.error(file.name+":解析失败",err);}loaded++;if(loaded===totalFiles)finishUpload(allRows);};reader.readAsArrayBuffer(file);});}
+function handleFiles(files){
+  if(!files||!files.length)return;
+  var MAX=30*1024*1024,ALLOWED=['.xlsx','.xls'],valid=[],rejected=[],oversized=[];
+  Array.from(files).forEach(function(f){
+    var ext=f.name.toLowerCase().slice(f.name.lastIndexOf('.'));
+    if(ALLOWED.indexOf(ext)===-1){rejected.push(f.name);return;}
+    if(f.size>MAX){oversized.push(f.name);return;}
+    valid.push(f);
+  });
+  if(rejected.length)toast('⚠ 不支持的文件格式: '+rejected.join(', '),'warn');
+  if(oversized.length)toast('⚠ 文件过大(>30MB): '+oversized.join(', '),'warn');
+  if(!valid.length){if(rejected.length||oversized.length)return;return;}
+  files=valid;if(typeof XLSX==="undefined"){toast("⚠️ 组件加载中，请稍后重试","warn");return;}var allRows=[],totalFiles=files.length,loaded=0;Array.from(files).forEach(function(file){var reader=new FileReader();reader.onload=function(e){try{allRows=allRows.concat(parseExcelFile(e.target.result,file.name));}catch(err){console.error(file.name+":解析失败",err);}loaded++;if(loaded===totalFiles)finishUpload(allRows);};reader.readAsArrayBuffer(file);});}
 function parseExcelFile(data,fileName){var wb=XLSX.read(data,{type:"array"});var allResults=[];wb.SheetNames.forEach(function(sn){var ws=wb.Sheets[sn];if(!ws)return;var rows=XLSX.utils.sheet_to_json(ws,{defval:""});if(!rows.length)return;var headers=Object.keys(rows[0]);var testKws=["部门名称","招考职位","职位名称","专业","学历","工作地点","地区","省份"];var matched={},uniqueCols={};testKws.forEach(function(kw){for(var i=0;i<headers.length;i++){if(headers[i].indexOf(kw)!==-1){matched[kw]=headers[i];break;}}});Object.values(matched).forEach(function(v){uniqueCols[v]=true;});if(Object.keys(matched).length<3||Object.keys(uniqueCols).length<3){var rawRows=XLSX.utils.sheet_to_json(ws,{defval:"",header:1});if(rawRows.length>=2){var newHeaders=rawRows[1];rows=[];for(var r=2;r<rawRows.length;r++){var obj={};for(var c=0;c<newHeaders.length;c++)obj[String(newHeaders[c]||"")]=rawRows[r][c]!==undefined?rawRows[r][c]:"";rows.push(obj);}if(rows.length>0){headers=Object.keys(rows[0]);console.warn(fileName+"/"+sn+":自动跳过说明行");}}}function findCol(keywords){for(var i=0;i<headers.length;i++){var h=headers[i];for(var k=0;k<keywords.length;k++){if(h.indexOf(keywords[k])!==-1)return h;}}return null;}var mDept=findCol(["部门名称","招录机关","用人司局","招录单位","单位名称"]),mTitle=findCol(["招考职位","职位名称","招录职位","岗位名称","职位"]),mLevel=findCol(["机构层级","机构性质","单位层级","层级"]),mAttr=findCol(["职位属性","职位类别","岗位属性","考试类别"]),mMajor=findCol(["专业","学科"]),mEdu=findCol(["学历","文化程度","学位"]),mParty=findCol(["政治面貌"]),mExp=findCol(["基层工作最低年限","基层经验","基层工作年限","工作年限"]),mCount=findCol(["招考人数","招录人数","计划招录","招录计划","招录"]),mRegion=findCol(["地区","省份","所属地区","所在省份","工作所在地"]),mLocation=findCol(["工作地点","工作地址","地点","所在地"]);console.log(fileName+"/"+sn+":检测到表头",JSON.stringify(headers.slice(0,15)));if(!mMajor){console.warn(fileName+"/"+sn+":无「专业」列，跳过。表头="+JSON.stringify(headers));return;}var result=[];rows.forEach(function(row){var region=String(row[mRegion]||"");if(!region&&mLocation){var loc=String(row[mLocation]||"");for(var s in STATE.provinceMap){if(loc.indexOf(s)!==-1){region=s;break;}}}if(!region)return;var count=parseInt(row[mCount])||1;result.push({d:String(row[mDept]||""),t:String(row[mTitle]||""),l:String(row[mLevel]||""),a:String(row[mAttr]||""),m:String(row[mMajor]||""),e:String(row[mEdu]||""),p:String(row[mParty]||""),x:String(row[mExp]||""),c:count,r:region});});if(result.length){console.log(fileName+"/"+sn+":解析"+result.length+"行");allResults=allResults.concat(result);}});console.log(fileName+":共"+wb.SheetNames.length+"个Sheet，有效数据"+allResults.length+"行");return allResults;}
 function finishUpload(allRows){if(!allRows.length){toast("⚠️ 未能解析有效数据，请检查文件格式","warn");return;}STATE.raw=allRows;STATE.meta.userDataLoaded=true;STATE.meta.dataYear=new Date().toISOString().slice(0,10);document.getElementById("dataBadge").textContent="📎 用户数据 ("+formatNum(allRows.length)+"岗)";document.getElementById("dataBadge").className="data-badge user";document.getElementById("statYear").textContent="上传";STATE.sort.key=null;STATE.sort.asc=true;STATE.filters={province:"",major:"",edu:"",party:"",exp:""};STATE.filterHistory=[];updateUndoBtn();document.getElementById("selProvince").value="";document.getElementById("selMajor").value="";document.getElementById("selEdu").value="";document.getElementById("selParty").value="";document.getElementById("selExp").value="";STATE.filtered=STATE.raw.slice();buildMajorIndex();saveFiltersToStorage();document.getElementById("uploadZone").classList.remove("idle");STATE._prevStats=null;dataChanged();if(typeof destroyAllCharts==="function")destroyAllCharts();hideEmptyStates();toast("✅ 成功解析 "+formatNum(allRows.length)+" 个岗位","success");}
 
@@ -965,6 +978,8 @@ function clearOneFilter(key){
 }
 // 初始化
 function init(){
+  // Embedded test mode: ?test=1
+  if(window.location.search.indexOf("test=1")!==-1)setTimeout(runTests,500);
   document.getElementById("chartStatus").textContent=echartsReady()?"图表就绪":"图表组件加载中...";
   STATE.filtered=STATE.raw.slice();updateStatsUI();
   // ── 上传区呼吸动画 ──
@@ -1095,6 +1110,32 @@ function finishGuide(){
   if(gEl){gEl.remove();gEl=null;}
   document.querySelectorAll(".guide-zone-highlight").forEach(function(e){e.classList.remove("guide-zone-highlight");});
   var s=loadSettings();s.__guided=true;saveSettings(s);
+}
+
+function runTests(){
+  var results=[];
+  function t(name,fn){try{results.push({name:name,pass:!!fn()});}catch(e){results.push({name:name,pass:false,error:e.message});}}
+  // fuzzyMatch tests
+  t('fuzzyMatch exact',function(){return fuzzyMatch('political','political');});
+  t('fuzzyMatch skip chars',function(){return fuzzyMatch('政治学类、法学类','政法');});
+  t('fuzzyMatch no match',function(){return !fuzzyMatch('计算机','政法');});
+  t('fuzzyMatch empty',function(){return !fuzzyMatch('','test');});
+  // fuzzyMatch tests
+  t('fuzzyMatch returns same',function(){var a=fuzzyMatch('test','t');var b=fuzzyMatch('test','t');return a===b&&_fzCache.size>0;});
+  // scoreOne tests (basic)
+  t('scoreOne defined',function(){return typeof scoreOne==="function";});
+  // applyFilters defined
+  t('applyFilters defined',function(){return typeof applyFilters==="function";});
+  // STATE defined
+  t('STATE exists',function(){return typeof STATE!=="undefined"&&STATE!==null;});
+  // Output
+  var passed=results.filter(function(r){return r.pass;}).length;
+  var total=results.length;
+  var color=passed===total?'green':passed>=total*0.7?'orange':'red';
+  console.log('%c📋 SheetLens Tests: '+passed+'/'+total+' passed','font-size:16px;font-weight:bold;color:'+color);
+  results.forEach(function(r){console.log(r.pass?'  ✅':'  ❌',r.name,r.error?'('+r.error+')':'');});
+  if(passed<total)console.warn('⚠ '+(total-passed)+' tests failed');
+  else console.log('✅ All tests passed!');
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 setTimeout(startGuide,800);
