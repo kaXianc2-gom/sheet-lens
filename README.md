@@ -1,5 +1,9 @@
 # SheetLens — 智能公考岗位筛选
 
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.4.0-brightgreen)](https://github.com/kaXianc2-gom/sheet-lens/releases)
+[![Pages](https://img.shields.io/badge/demo-online-0078D4)](https://kaXianc2-gom.github.io/sheet-lens/)
+
 单文件 HTML 工具，84KB，双击即用。拖拽上传国考/省考职位表，自动解析、筛选、评分、可视化、对比、导出。
 
 ## 截图
@@ -73,11 +77,27 @@
 - 带合并单元格说明行的变体（自动跳过）
 - `.xlsx` / `.xls` 均支持
 
+## 🌐 在线体验
+
+无需下载，直接使用：**[🔗 在线 Demo](https://kaXianc2-gom.github.io/sheet-lens/)**
+
+> ⚠️ 在线版同样纯本地运行，所有数据仅在浏览器内存中处理，不会上传到任何服务器。
+
+## 🔐 隐私声明
+
+- **数据不上传**：所有文件解析、筛选、评分均在浏览器本地内存中完成
+- **无网络请求**：所有依赖（SheetJS / ECharts / DataV GeoJSON）均已内联，运行时零外部请求
+- **无持久化存储**：数据仅在当前会话中，关闭浏览器后自动清除
+- **localStorage 仅存偏好**：仅保存主题、筛选条件等用户设置，不保存源数据
+
+> ⚠️ **免责声明**：本工具仅供数据筛选与参考辅助，不构成任何报考决策建议。所有信息以官方发布的职位表为准。
+
 ## 技术架构
 
 - 纯 HTML + 原生 JS，零构建工具，零服务器
-- CDN：ECharts 5.5（图表）+ SheetJS 0.18.5（Excel 解析）
-- 中国地图：DataV GeoJSON
+- SheetJS 内联（Excel 解析，离线可用）
+- ECharts 内联（图表渲染，离线可用）
+- 中国地图：DataV GeoJSON 内联
 - 数据完全本地处理，不上传服务器
 
 ## AI 辅助声明
