@@ -391,9 +391,16 @@ body {
   .header h1 { font-size: 16px; }
   .btn { padding: 8px 16px; font-size: 13px; }
 }
+/* Page entry */
+@keyframes pageEnter{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:translateY(0); } }
+.container{ animation: pageEnter 0.45s cubic-bezier(0.22,0.1,0.2,1); }
+/* Page exit */
+.page-exit-overlay{ position:fixed; inset:0; z-index:9999; background:var(--bg); opacity:0; pointer-events:none; transition:opacity 0.3s ease; }
+.page-exit-overlay.go{ opacity:1; pointer-events:all; }
 </style>
 </head>
 <body>
+<div class="page-exit-overlay" id="exitOverlay"></div>
 <!-- Loading skeleton — disappears when CDN ready -->
 <div id="appLoader" style="position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity 0.3s">
 <div style="text-align:center">
@@ -1267,6 +1274,14 @@ function runTests(){
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 setTimeout(startGuide,800);
+
+// Page exit animation on back navigation
+window.addEventListener('pageshow',function(e){
+  if(e.persisted){ document.getElementById('exitOverlay').classList.remove('go'); }
+});
+window.addEventListener('beforeunload',function(){
+  document.getElementById('exitOverlay').classList.add('go');
+});
 </script>
 </body>
 </html>
