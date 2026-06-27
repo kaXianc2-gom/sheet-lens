@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="智能公考岗位筛选工具 — 5维评分引擎+中国地图热力图+模糊搜索，数据不上传">
+<meta name="theme-color" content="#e67e22">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
 <title>SheetLens — 智能公考岗位筛选</title>
 
 <style>
@@ -418,7 +421,7 @@ body {
 <div class="main">
 
 <!-- 上传区 -->
-<div class="upload-zone" id="uploadZone">
+<div class="upload-zone" id="uploadZone" role="button" tabindex="0" aria-label="上传职位表文件">
   <div class="upload-icon">📂</div>
   <div>
     <div class="upload-text"><b>拖拽 Excel 文件到此处</b> 或 点击选择文件</div>
@@ -660,10 +663,11 @@ var Fr={},Gr={};var Wr,Hr=function(){function t(t,e,n){var i=this;this._sleepAft
 </script>
 
 <script>
+"use strict";
 // ═══════════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════════
-var STATE = {
+const STATE = {
   raw: [], filtered: [], provinceStats: {},
   provinceMap: {
     "北京":"北京市","上海":"上海市","天津":"天津市","重庆":"重庆市",
@@ -686,12 +690,12 @@ var STATE = {
 //  FILTER
 // ═══════════════════════════════════════════════════════════════
 function applyFilters(positions, filters) {
-  var p=filters.province, m=filters.major, e=filters.edu, py=filters.party, ex=filters.exp;
-  var kw=m?m.split(/[,，\s]+/).filter(Boolean):[];
+  let p=filters.province, m=filters.major, e=filters.edu, py=filters.party, ex=filters.exp;
+  let kw=m?m.split(/[,，\s]+/).filter(Boolean):[];
   return positions.filter(function(r){
     if(p&&r.r!==p)return false;
     if(kw.length&&!kw.some(function(k){return fuzzyMatch(r.m,k)}))return false;
-    if(e){if(e==="仅限本科"){if(r.e.indexOf("仅限本科")===-1&&r.e.indexOf("限本科")===-1)return false}else if(e==="仅限硕士"){if(r.e.indexOf("仅限硕士")===-1&&r.e.indexOf("限硕士")===-1)return false}else{var b=e.replace("仅限","");if(r.e.indexOf(b)===-1)return false;if(r.e.indexOf("仅限")!==-1&&r.e.indexOf(e)===-1)return false}}
+    if(e){if(e==="仅限本科"){if(r.e.indexOf("仅限本科")===-1&&r.e.indexOf("限本科")===-1)return false}else if(e==="仅限硕士"){if(r.e.indexOf("仅限硕士")===-1&&r.e.indexOf("限硕士")===-1)return false}else{let b=e.replace("仅限","");if(r.e.indexOf(b)===-1)return false;if(r.e.indexOf("仅限")!==-1&&r.e.indexOf(e)===-1)return false}}
     if(py){if(py==="党员"){if(r.p.indexOf("党员")===-1)return false}else if(py==="不限"){if(r.p&&(r.p.indexOf("党员")!==-1||r.p.indexOf("团员")!==-1))return false}}
     if(ex){if(ex==="无限制"){if(r.x&&r.x!=="无限制"&&r.x.indexOf("不限")===-1)return false}else{if(r.x.indexOf(ex.replace("及以上",""))===-1)return false}}
     return true;
@@ -701,27 +705,27 @@ function applyFilters(positions, filters) {
 function fuzzyMatch(text, pattern) {
   if(!text||!pattern)return false;
   text=text.toLowerCase();pattern=pattern.toLowerCase();
-  var ti=0,pi=0;
+  let ti=0,pi=0;
   while(ti<text.length&&pi<pattern.length){if(text[ti]===pattern[pi])pi++;ti++;}
   return pi===pattern.length;
 }
 
 // ── 专业关键词索引 ──
 function buildMajorIndex(){
-  var seen={};STATE.majorIndex=[];
+  let seen={};STATE.majorIndex=[];
   STATE.raw.forEach(function(r){
     (r.m||"").split(/[,，、\s]+/).forEach(function(m){m=m.trim();if(m&&m.length>=2&&!seen[m]){seen[m]=true;STATE.majorIndex.push(m);}});
   });
   STATE.majorIndex.sort();
 }
 // ── 自动补全 ──
-var acIdx=-1;
+let acIdx=-1;
 function showAC(query){
-  var dd=document.getElementById("acDropdown");if(!dd)return;
+  let dd=document.getElementById("acDropdown");if(!dd)return;
   if(!query||!STATE.majorIndex||!STATE.majorIndex.length){dd.style.display="none";acIdx=-1;return;}
-  var parts=query.split(/[,，\s]+/),last=(parts[parts.length-1]||"").trim();
+  let parts=query.split(/[,，\s]+/),last=(parts[parts.length-1]||"").trim();
   if(!last||last.length<1){dd.style.display="none";acIdx=-1;return;}
-  var matches=STATE.majorIndex.filter(function(m){return fuzzyMatch(m,last);}).slice(0,15);
+  let matches=STATE.majorIndex.filter(function(m){return fuzzyMatch(m,last);}).slice(0,15);
   if(!matches.length){dd.style.display="none";acIdx=-1;return;}
   acIdx=-1;
   dd.innerHTML='<div class="ac-hint">📚 匹配的专业（点击填入，↑↓选择）</div>'+matches.map(function(m,i){return'<div class="autocomplete-item" data-idx="'+i+'" data-val="'+m.replace(/"/g,"&quot;")+'">'+highlightAC(m,last)+'</div>';}).join("");
@@ -729,23 +733,23 @@ function showAC(query){
   dd.querySelectorAll(".autocomplete-item").forEach(function(item){item.addEventListener("mousedown",function(e){e.preventDefault();parts[parts.length-1]=this.getAttribute("data-val");document.getElementById("selMajor").value=parts.join("、");dd.style.display="none";acIdx=-1;saveFiltersToStorage();handleFilterApply();});});
 }
 function highlightAC(text,q){
-  var r="",ti=0,qi=0;text=text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  while(ti<text.length&&qi<q.length){if(text[ti].toLowerCase()===q[qi].toLowerCase()){r+="<b style='color:var(--primary)'>"+text[ti]+"</b>";qi++;}else{r+=text[ti];}ti++;}
+  let r="",ti=0,qi=0;text=text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  while(ti<text.length&&qi<q.length){if(text[ti].toLowerCase()===q[qi].toLowerCase()){r+="<b style='color:let(--primary)'>"+text[ti]+"</b>";qi++;}else{r+=text[ti];}ti++;}
   return r+text.slice(ti);
 }
-function hideAC(){setTimeout(function(){var dd=document.getElementById("acDropdown");if(dd)dd.style.display="none";acIdx=-1;},200);}
+function hideAC(){setTimeout(function(){let dd=document.getElementById("acDropdown");if(dd)dd.style.display="none";acIdx=-1;},200);}
 function navAC(dir){
-  var dd=document.getElementById("acDropdown");if(!dd||dd.style.display==="none")return;
-  var items=dd.querySelectorAll(".autocomplete-item");if(!items.length)return;
+  let dd=document.getElementById("acDropdown");if(!dd||dd.style.display==="none")return;
+  let items=dd.querySelectorAll(".autocomplete-item");if(!items.length)return;
   items.forEach(function(item,i){item.classList.toggle("active",i===acIdx+dir);});
   acIdx+=dir;if(acIdx<0)acIdx=items.length-1;if(acIdx>=items.length)acIdx=0;
   items.forEach(function(item,i){item.classList.toggle("active",i===acIdx);if(i===acIdx)item.scrollIntoView({block:"nearest"});});
 }
 function selAC(){
-  var dd=document.getElementById("acDropdown");if(!dd||dd.style.display==="none"||acIdx<0)return;
-  var active=dd.querySelector(".autocomplete-item.active");if(!active)return;
-  var val=active.getAttribute("data-val"),input=document.getElementById("selMajor");
-  var parts=input.value.split(/[,，\s]+/);parts[parts.length-1]=val;
+  let dd=document.getElementById("acDropdown");if(!dd||dd.style.display==="none"||acIdx<0)return;
+  let active=dd.querySelector(".autocomplete-item.active");if(!active)return;
+  let val=active.getAttribute("data-val"),input=document.getElementById("selMajor");
+  let parts=input.value.split(/[,，\s]+/);parts[parts.length-1]=val;
   input.value=parts.join("、");dd.style.display="none";acIdx=-1;
   saveFiltersToStorage();handleFilterApply();
 }
@@ -753,19 +757,19 @@ function selAC(){
 // ═══════════════════════════════════════════════════════════════
 //  SCORE
 // ═══════════════════════════════════════════════════════════════
-var EDU_LEVELS={"大专":1,"大专及以上":2,"本科":3,"本科及以上":3,"仅限本科":3,"硕士":5,"硕士研究生及以上":5,"仅限硕士":5,"博士":7,"博士研究生":7};
-function getEduLevel(t){if(!t)return 0;for(var k in EDU_LEVELS){if(t.indexOf(k)!==-1)return EDU_LEVELS[k];}return 0;}
-function eduMatches(ue,pe){if(!ue)return true;var ul=getEduLevel(ue);if(ul===0)return true;if(pe.indexOf("仅限")!==-1)return pe.indexOf(ue.replace("及以上",""))!==-1;return ul>=getEduLevel(pe);}
+let EDU_LEVELS={"大专":1,"大专及以上":2,"本科":3,"本科及以上":3,"仅限本科":3,"硕士":5,"硕士研究生及以上":5,"仅限硕士":5,"博士":7,"博士研究生":7};
+function getEduLevel(t){if(!t)return 0;for(let k in EDU_LEVELS){if(t.indexOf(k)!==-1)return EDU_LEVELS[k];}return 0;}
+function eduMatches(ue,pe){if(!ue)return true;let ul=getEduLevel(ue);if(ul===0)return true;if(pe.indexOf("仅限")!==-1)return pe.indexOf(ue.replace("及以上",""))!==-1;return ul>=getEduLevel(pe);}
 // ── 词边界匹配：防止「法学」误匹配到「法医学」──
 	function wordBoundaryMatch(text, keyword){
 	  if(!text||!keyword)return false;
 	  if(!fuzzyMatch(text,keyword))return false;
-	  var idx=text.indexOf(keyword);
+	  let idx=text.indexOf(keyword);
 	  if(idx===-1)return true;
-	  var before=idx>0?text[idx-1]:'';
-	  var after=idx+keyword.length<text.length?text[idx+keyword.length]:'';
-	  var sepBefore=/[,，、\s(（【〔]/.test(before)||idx===0;
-	  var sepAfter=/[,，、\s)）】〕]/.test(after)||idx+keyword.length===text.length;
+	  let before=idx>0?text[idx-1]:'';
+	  let after=idx+keyword.length<text.length?text[idx+keyword.length]:'';
+	  let sepBefore=/[,，、\s(（【〔]/.test(before)||idx===0;
+	  let sepAfter=/[,，、\s)）】〕]/.test(after)||idx+keyword.length===text.length;
 	  if(sepBefore&&sepAfter)return true;
 	  if(keyword.length>=text.length*0.7)return true;
 	  if(/[一-鿿]/.test(before)||/[一-鿿]/.test(after)){
@@ -777,10 +781,10 @@ function eduMatches(ue,pe){if(!ue)return true;var ul=getEduLevel(ue);if(ul===0)r
 
 	function scoreOne(pos,profile){
 	  if(!profile||!profile.enabled)return null;
-	  var s=0,details=[];
-	  if(profile.major){var kw=profile.major.split(/[,，\s]+/).filter(Boolean);if(kw.length){if(pos.m.indexOf("不限")!==-1||pos.m===""){s+=12;details.push({d:"专业",p:12,m:25,n:"不限专业"});}else{var mc=0;kw.forEach(function(k){if(wordBoundaryMatch(pos.m,k))mc++;});var mp=Math.min(Math.round(mc/kw.length*25),25);s+=mp;details.push({d:"专业",p:mp,m:25,n:"匹配"+mc+"/"+kw.length+"词"});}}}
+	  let s=0,details=[];
+	  if(profile.major){let kw=profile.major.split(/[,，\s]+/).filter(Boolean);if(kw.length){if(pos.m.indexOf("不限")!==-1||pos.m===""){s+=12;details.push({d:"专业",p:12,m:25,n:"不限专业"});}else{let mc=0;kw.forEach(function(k){if(wordBoundaryMatch(pos.m,k))mc++;});let mp=Math.min(Math.round(mc/kw.length*25),25);s+=mp;details.push({d:"专业",p:mp,m:25,n:"匹配"+mc+"/"+kw.length+"词"});}}}
 	  if(profile.edu){if(eduMatches(profile.edu,pos.e)){s+=20;details.push({d:"学历",p:20,m:20,n:"满足"});}else{details.push({d:"学历",p:0,m:20,n:"要求"+pos.e});}}
-	  var cp=Math.round(Math.log2(pos.c+1)*7);cp=Math.min(cp,15);s+=cp;details.push({d:"招录",p:cp,m:15,n:pos.c+"人"});
+	  let cp=Math.round(Math.log2(pos.c+1)*7);cp=Math.min(cp,15);s+=cp;details.push({d:"招录",p:cp,m:15,n:pos.c+"人"});
 	  if(profile.party){if(profile.party==="党员"){s+=15;details.push({d:"政治",p:15,m:15,n:"党员优势"});}else{if(pos.p.indexOf("党员")!==-1&&pos.p.indexOf("不限")===-1){details.push({d:"政治",p:0,m:15,n:"要求党员"});}else{s+=15;details.push({d:"政治",p:15,m:15,n:"满足"});}}}
 	  if(profile.exp){if(profile.exp==="无"){if(!pos.x||pos.x==="无限制"||pos.x.indexOf("不限")!==-1){s+=15;details.push({d:"经验",p:15,m:15,n:"无限制"});}else{details.push({d:"经验",p:0,m:15,n:"要求"+pos.x});}}else{if(!pos.x||pos.x==="无限制"||pos.x.indexOf("不限")!==-1){s+=15;details.push({d:"经验",p:15,m:15,n:"满足"});}else if(pos.x.indexOf(profile.exp.replace("及以上",""))!==-1){s+=15;details.push({d:"经验",p:15,m:15,n:"匹配"});}else{details.push({d:"经验",p:0,m:15,n:"不匹配"});}}}
 	  if(profile.province&&pos.r){
@@ -790,34 +794,34 @@ function eduMatches(ue,pe){if(!ue)return true;var ul=getEduLevel(ue);if(ul===0)r
 	  }
 	  return{total:s,pct:Math.round(s/100*100),details:details};
 	}
-function scoreAll(positions,profile){if(!profile||!profile.enabled)return positions;return positions.map(function(p){var r=scoreOne(p,profile);p._score=r?r.total:null;p._detail=r?r.details:null;return p;});}
+function scoreAll(positions,profile){if(!profile||!profile.enabled)return positions;return positions.map(function(p){let r=scoreOne(p,profile);p._score=r?r.total:null;p._detail=r?r.details:null;return p;});}
 function scoreGrade(pts){if(pts===null||pts===undefined)return"";if(pts>=80)return"score-a";if(pts>=60)return"score-b";if(pts>=40)return"score-c";return"score-d";}
 function scoreLabel(pts){if(pts===null||pts===undefined)return"";if(pts>=80)return"⭐强烈推荐";if(pts>=60)return"👍推荐";if(pts>=40)return"💡可考虑";return"⚡竞争激烈";}
 
 // ═══════════════════════════════════════════════════════════════
 //  ANALYTICS
 // ═══════════════════════════════════════════════════════════════
-function groupCount(d,k){var r={};d.forEach(function(x){var v=x[k]||"未知";r[v]=(r[v]||0)+1;});return r;}
-function rebuildProvinceStats(){var ps={};STATE.raw.forEach(function(r){var p=r.r;if(!ps[p])ps[p]={total:0,politic:0};ps[p].total++;if(/政治学|国际政治|国际关系|外交学/.test(r.m))ps[p].politic++;});STATE.provinceStats=ps;}
+function groupCount(d,k){let r={};d.forEach(function(x){let v=x[k]||"未知";r[v]=(r[v]||0)+1;});return r;}
+function rebuildProvinceStats(){let ps={};STATE.raw.forEach(function(r){let p=r.r;if(!ps[p])ps[p]={total:0,politic:0};ps[p].total++;if(/政治学|国际政治|国际关系|外交学/.test(r.m))ps[p].politic++;});STATE.provinceStats=ps;}
 function buildAnalytics(f){return{provinceCounts:groupCount(f,"r"),topProvinces:getTopN(f,"r",10),levelCounts:groupCount(f,"l"),attrCounts:groupCount(f,"a"),eduCounts:normalizeEdu(f),partyCounts:normalizeParty(f),expCounts:normalizeExp(f),deptTop10:getTopN(f,"d",10)};}
-function getTopN(d,k,n){var c=groupCount(d,k);return Object.keys(c).map(function(x){return{name:x,value:c[x]};}).sort(function(a,b){return b.value-a.value;}).slice(0,n);}
-function normalizeEdu(d){var ec={};d.forEach(function(r){var e=r.e||"其他";if(e.indexOf("本科")!==-1&&e.indexOf("硕士")===-1&&e.indexOf("博士")===-1)e="本科";else if(e.indexOf("硕士")!==-1&&e.indexOf("博士")===-1)e="硕士及以上";else if(e.indexOf("博士")!==-1)e="博士";else if(e.indexOf("大专")!==-1)e="大专";ec[e]=(ec[e]||0)+1;});return ec;}
-function normalizeParty(d){var pc={};d.forEach(function(r){var p=r.p||"不限";if(p.indexOf("党员")!==-1&&p.indexOf("团员")!==-1)p="党员/团员";else if(p.indexOf("党员")!==-1)p="中共党员";else if(p.indexOf("团员")!==-1)p="共青团员";else p="不限";pc[p]=(pc[p]||0)+1;});return pc;}
-function normalizeExp(d){var xc={};d.forEach(function(r){var x=r.x||"无限制";if(x.indexOf("不限")!==-1||x==="无限制")x="无限制";else if(x.indexOf("二年")!==-1)x="二年及以上";else if(x.indexOf("三年")!==-1)x="三年及以上";else if(x.indexOf("一年")!==-1)x="一年及以上";else if(x.indexOf("五年")!==-1)x="五年及以上";xc[x]=(xc[x]||0)+1;});return xc;}
+function getTopN(d,k,n){let c=groupCount(d,k);return Object.keys(c).map(function(x){return{name:x,value:c[x]};}).sort(function(a,b){return b.value-a.value;}).slice(0,n);}
+function normalizeEdu(d){let ec={};d.forEach(function(r){let e=r.e||"其他";if(e.indexOf("本科")!==-1&&e.indexOf("硕士")===-1&&e.indexOf("博士")===-1)e="本科";else if(e.indexOf("硕士")!==-1&&e.indexOf("博士")===-1)e="硕士及以上";else if(e.indexOf("博士")!==-1)e="博士";else if(e.indexOf("大专")!==-1)e="大专";ec[e]=(ec[e]||0)+1;});return ec;}
+function normalizeParty(d){let pc={};d.forEach(function(r){let p=r.p||"不限";if(p.indexOf("党员")!==-1&&p.indexOf("团员")!==-1)p="党员/团员";else if(p.indexOf("党员")!==-1)p="中共党员";else if(p.indexOf("团员")!==-1)p="共青团员";else p="不限";pc[p]=(pc[p]||0)+1;});return pc;}
+function normalizeExp(d){let xc={};d.forEach(function(r){let x=r.x||"无限制";if(x.indexOf("不限")!==-1||x==="无限制")x="无限制";else if(x.indexOf("二年")!==-1)x="二年及以上";else if(x.indexOf("三年")!==-1)x="三年及以上";else if(x.indexOf("一年")!==-1)x="一年及以上";else if(x.indexOf("五年")!==-1)x="五年及以上";xc[x]=(xc[x]||0)+1;});return xc;}
 function computeStats(f){return{totalPositions:f.length,totalRecruits:f.reduce(function(s,r){return s+r.c;},0),totalProvinces:new Set(f.map(function(r){return r.r;})).size};}
-function computeScoreStats(f){var hasProfile=STATE.filters.major||STATE.filters.edu||STATE.filters.party||STATE.filters.exp;if(!hasProfile)return null;var s=f.filter(function(r){return r._score!==null&&r._score!==undefined;});if(!s.length)return null;var sum=s.reduce(function(a,r){return a+r._score;},0);var avg=Math.round(sum/s.length);var d={"强烈推荐":0,"推荐":0,"可考虑":0,"竞争激烈":0};s.forEach(function(r){if(r._score>=80)d["强烈推荐"]++;else if(r._score>=60)d["推荐"]++;else if(r._score>=40)d["可考虑"]++;else d["竞争激烈"]++;});return{avg:avg,dist:d,scored:s.length};}
+function computeScoreStats(f){let hasProfile=STATE.filters.major||STATE.filters.edu||STATE.filters.party||STATE.filters.exp;if(!hasProfile)return null;let s=f.filter(function(r){return r._score!==null&&r._score!==undefined;});if(!s.length)return null;let sum=s.reduce(function(a,r){return a+r._score;},0);let avg=Math.round(sum/s.length);let d={"强烈推荐":0,"推荐":0,"可考虑":0,"竞争激烈":0};s.forEach(function(r){if(r._score>=80)d["强烈推荐"]++;else if(r._score>=60)d["推荐"]++;else if(r._score>=40)d["可考虑"]++;else d["竞争激烈"]++;});return{avg:avg,dist:d,scored:s.length};}
 
 // ═══════════════════════════════════════════════════════════════
 //  RECOMPUTE
 // ═══════════════════════════════════════════════════════════════
 function recompute(){STATE.filtered=applyFilters(STATE.raw,STATE.filters);scoreIfNeeded();STATE.analytics=buildAnalytics(STATE.filtered);}
-function scoreIfNeeded(){var hasProfile=STATE.filters.major||STATE.filters.edu||STATE.filters.party||STATE.filters.exp;if(hasProfile){var p={enabled:true,major:STATE.filters.major,edu:STATE.filters.edu,party:STATE.filters.party,exp:STATE.filters.exp,province:STATE.filters.province};STATE.filtered=scoreAll(STATE.filtered,p);}}
+function scoreIfNeeded(){let hasProfile=STATE.filters.major||STATE.filters.edu||STATE.filters.party||STATE.filters.exp;if(hasProfile){let p={enabled:true,major:STATE.filters.major,edu:STATE.filters.edu,party:STATE.filters.party,exp:STATE.filters.exp,province:STATE.filters.province};STATE.filtered=scoreAll(STATE.filtered,p);}}
 function dataChanged(){rebuildProvinceStats();rebuildDropdown();STATE.meta.totalPositions=STATE.raw.length;STATE.meta.totalProvinces=Object.keys(STATE.provinceStats).length;updateStatsUI();renderAll();}
 function filterChanged(){recompute();updateStatsUI();renderAll();}
-function rebuildDropdown(){var sel=document.getElementById("selProvince");sel.innerHTML='<option value="">全部省份</option>';Object.keys(STATE.provinceStats).sort().forEach(function(p){var o=document.createElement("option");o.value=p;o.textContent=p+" ("+STATE.provinceStats[p].total+"岗)";sel.appendChild(o);});}
+function rebuildDropdown(){let sel=document.getElementById("selProvince");sel.innerHTML='<option value="">全部省份</option>';Object.keys(STATE.provinceStats).sort().forEach(function(p){let o=document.createElement("option");o.value=p;o.textContent=p+" ("+STATE.provinceStats[p].total+"岗)";sel.appendChild(o);});}
 function updateStatsUI(){
-  var f=STATE.filtered,st=computeStats(f);
-  var prev=STATE._prevStats||{pos:0,rec:0,prov:0};
+  let f=STATE.filtered,st=computeStats(f);
+  let prev=STATE._prevStats||{pos:0,rec:0,prov:0};
   // 数字滚动动画
   _animNum(document.getElementById("statPos"),prev.pos,st.totalPositions,"");
   _animNum(document.getElementById("statRec"),prev.rec,st.totalRecruits,"人");
@@ -825,24 +829,24 @@ function updateStatsUI(){
   STATE._prevStats={pos:st.totalPositions,rec:st.totalRecruits,prov:st.totalProvinces};
   // 筛选标签
   renderFilterBadges();
-  var si=document.getElementById("statScoreItem");
-  var hasProfile=STATE.filters.major||STATE.filters.edu||STATE.filters.party||STATE.filters.exp;
-  var ss=hasProfile?computeScoreStats(f):null;
+  let si=document.getElementById("statScoreItem");
+  let hasProfile=STATE.filters.major||STATE.filters.edu||STATE.filters.party||STATE.filters.exp;
+  let ss=hasProfile?computeScoreStats(f):null;
   if(ss){si.style.display="flex";document.getElementById("statScore").textContent=ss.avg+"分";
-    var bar=document.getElementById("scoreBar");bar.style.display="flex";
+    let bar=document.getElementById("scoreBar");bar.style.display="flex";
     document.getElementById("scoreBarInner").innerHTML='<span class="score-bar-item"><span class="n green">'+ss.dist["强烈推荐"]+'</span> <span class="l">强烈推荐</span></span> <span class="score-bar-item"><span class="n blue">'+ss.dist["推荐"]+'</span> <span class="l">推荐</span></span> <span class="score-bar-item"><span class="n orange">'+ss.dist["可考虑"]+'</span> <span class="l">可考虑</span></span> <span class="score-bar-item"><span class="n red">'+ss.dist["竞争激烈"]+'</span> <span class="l">竞争激烈</span></span>';
   }else{si.style.display="none";
-    var bar=document.getElementById("scoreBar");bar.style.display="none";
+    let bar=document.getElementById("scoreBar");bar.style.display="none";
   }
 }
 // 数字滚动核心（支持后缀单位如「人」）
 function _animNum(el,from,to,unit){
   if(!el)return;if(from===to){el.textContent=formatNum(to)+(unit||"");return;}
-  var start=performance.now(),dur=420;
-  function step(ts){var p=Math.min((ts-start)/dur,1);var e=1-Math.pow(1-p,3);el.textContent=formatNum(Math.round(from+(to-from)*e))+(unit||"");if(p<1)requestAnimationFrame(step);else el.textContent=formatNum(to)+(unit||"");}
+  let start=performance.now(),dur=420;
+  function step(ts){let p=Math.min((ts-start)/dur,1);let e=1-Math.pow(1-p,3);el.textContent=formatNum(Math.round(from+(to-from)*e))+(unit||"");if(p<1)requestAnimationFrame(step);else el.textContent=formatNum(to)+(unit||"");}
   requestAnimationFrame(step);
 }
-function getProvinceDistribution(){var dist={},fm={},mm={};var mk=STATE.filters.major?STATE.filters.major.split(/[,，\s]+/).filter(Boolean):[];STATE.filtered.forEach(function(r){fm[r.r]=(fm[r.r]||0)+1;});if(mk.length){STATE.raw.forEach(function(r){if(mk.some(function(k){return r.m.indexOf(k)!==-1;}))mm[r.r]=(mm[r.r]||0)+1;});}Object.keys(STATE.provinceStats).forEach(function(s){var fn=STATE.provinceMap[s]||s;dist[s]={name:fn,shortName:s,filtered:fm[s]||0,total:STATE.provinceStats[s].total,majorMatch:mm[s]||0,majorLabel:mk.length?mk.join("/"):""};});return dist;}
+function getProvinceDistribution(){let dist={},fm={},mm={};let mk=STATE.filters.major?STATE.filters.major.split(/[,，\s]+/).filter(Boolean):[];STATE.filtered.forEach(function(r){fm[r.r]=(fm[r.r]||0)+1;});if(mk.length){STATE.raw.forEach(function(r){if(mk.some(function(k){return r.m.indexOf(k)!==-1;}))mm[r.r]=(mm[r.r]||0)+1;});}Object.keys(STATE.provinceStats).forEach(function(s){let fn=STATE.provinceMap[s]||s;dist[s]={name:fn,shortName:s,filtered:fm[s]||0,total:STATE.provinceStats[s].total,majorMatch:mm[s]||0,majorLabel:mk.length?mk.join("/"):""};});return dist;}
 
 // ═══════════════════════════════════════════════════════════════
 //  CHART UTILS
@@ -853,12 +857,12 @@ function destroyAllCharts(){if(typeof destroyMapChart==="function")destroyMapCha
 // ═══════════════════════════════════════════════════════════════
 //  UPLOAD
 // ═══════════════════════════════════════════════════════════════
-(function(){var uz=document.getElementById("uploadZone"),fi=document.getElementById("fileInput");uz.addEventListener("click",function(){fi.click();uz.classList.remove("idle");});fi.addEventListener("change",function(){handleFiles(this.files);});uz.addEventListener("dragover",function(e){e.preventDefault();uz.classList.add("dragover");uz.classList.remove("idle");});uz.addEventListener("dragleave",function(){uz.classList.remove("dragover");});uz.addEventListener("drop",function(e){e.preventDefault();uz.classList.remove("dragover");handleFiles(e.dataTransfer.files);});})();
+(function(){let uz=document.getElementById("uploadZone"),fi=document.getElementById("fileInput");uz.addEventListener("click",function(){fi.click();uz.classList.remove("idle");});fi.addEventListener("change",function(){handleFiles(this.files);});uz.addEventListener("dragover",function(e){e.preventDefault();uz.classList.add("dragover");uz.classList.remove("idle");});uz.addEventListener("dragleave",function(){uz.classList.remove("dragover");});uz.addEventListener("drop",function(e){e.preventDefault();uz.classList.remove("dragover");handleFiles(e.dataTransfer.files);});})();
 function handleFiles(files){
   if(!files||!files.length)return;
-  var MAX=30*1024*1024,ALLOWED=['.xlsx','.xls'],valid=[],rejected=[],oversized=[];
+  let MAX=30*1024*1024,ALLOWED=['.xlsx','.xls'],valid=[],rejected=[],oversized=[];
   Array.from(files).forEach(function(f){
-    var ext=f.name.toLowerCase().slice(f.name.lastIndexOf('.'));
+    let ext=f.name.toLowerCase().slice(f.name.lastIndexOf('.'));
     if(ALLOWED.indexOf(ext)===-1){rejected.push(f.name);return;}
     if(f.size>MAX){oversized.push(f.name);return;}
     valid.push(f);
@@ -866,8 +870,8 @@ function handleFiles(files){
   if(rejected.length)toast('⚠ 不支持的文件格式: '+rejected.join(', '),'warn');
   if(oversized.length)toast('⚠ 文件过大(>30MB): '+oversized.join(', '),'warn');
   if(!valid.length){if(rejected.length||oversized.length)return;return;}
-  files=valid;if(typeof XLSX==="undefined"){toast("⚠️ 组件加载中，请稍后重试","warn");return;}var allRows=[],totalFiles=files.length,loaded=0;Array.from(files).forEach(function(file){var reader=new FileReader();reader.onload=function(e){try{allRows=allRows.concat(parseExcelFile(e.target.result,file.name));}catch(err){console.error(file.name+":解析失败",err);}loaded++;if(loaded===totalFiles)finishUpload(allRows);};reader.readAsArrayBuffer(file);});}
-function parseExcelFile(data,fileName){var wb=XLSX.read(data,{type:"array"});var allResults=[];wb.SheetNames.forEach(function(sn){var ws=wb.Sheets[sn];if(!ws)return;var rows=XLSX.utils.sheet_to_json(ws,{defval:""});if(!rows.length)return;var headers=Object.keys(rows[0]);var testKws=["部门名称","招考职位","职位名称","专业","学历","工作地点","地区","省份"];var matched={},uniqueCols={};testKws.forEach(function(kw){for(var i=0;i<headers.length;i++){if(headers[i].indexOf(kw)!==-1){matched[kw]=headers[i];break;}}});Object.values(matched).forEach(function(v){uniqueCols[v]=true;});if(Object.keys(matched).length<3||Object.keys(uniqueCols).length<3){var rawRows=XLSX.utils.sheet_to_json(ws,{defval:"",header:1});if(rawRows.length>=2){var newHeaders=rawRows[1];rows=[];for(var r=2;r<rawRows.length;r++){var obj={};for(var c=0;c<newHeaders.length;c++)obj[String(newHeaders[c]||"")]=rawRows[r][c]!==undefined?rawRows[r][c]:"";rows.push(obj);}if(rows.length>0){headers=Object.keys(rows[0]);console.warn(fileName+"/"+sn+":自动跳过说明行");}}}function findCol(keywords){for(var i=0;i<headers.length;i++){var h=headers[i];for(var k=0;k<keywords.length;k++){if(h.indexOf(keywords[k])!==-1)return h;}}return null;}var mDept=findCol(["部门名称","招录机关","用人司局","招录单位","单位名称"]),mTitle=findCol(["招考职位","职位名称","招录职位","岗位名称","职位"]),mLevel=findCol(["机构层级","机构性质","单位层级","层级"]),mAttr=findCol(["职位属性","职位类别","岗位属性","考试类别"]),mMajor=findCol(["专业","学科"]),mEdu=findCol(["学历","文化程度","学位"]),mParty=findCol(["政治面貌"]),mExp=findCol(["基层工作最低年限","基层经验","基层工作年限","工作年限"]),mCount=findCol(["招考人数","招录人数","计划招录","招录计划","招录"]),mRegion=findCol(["地区","省份","所属地区","所在省份","工作所在地"]),mLocation=findCol(["工作地点","工作地址","地点","所在地"]);console.log(fileName+"/"+sn+":检测到表头",JSON.stringify(headers.slice(0,15)));if(!mMajor){console.warn(fileName+"/"+sn+":无「专业」列，跳过。表头="+JSON.stringify(headers));return;}var result=[];rows.forEach(function(row){var region=String(row[mRegion]||"");if(!region&&mLocation){var loc=String(row[mLocation]||"");for(var s in STATE.provinceMap){if(loc.indexOf(s)!==-1){region=s;break;}}}if(!region)return;var count=parseInt(row[mCount])||1;result.push({d:String(row[mDept]||""),t:String(row[mTitle]||""),l:String(row[mLevel]||""),a:String(row[mAttr]||""),m:String(row[mMajor]||""),e:String(row[mEdu]||""),p:String(row[mParty]||""),x:String(row[mExp]||""),c:count,r:region});});if(result.length){console.log(fileName+"/"+sn+":解析"+result.length+"行");allResults=allResults.concat(result);}});console.log(fileName+":共"+wb.SheetNames.length+"个Sheet，有效数据"+allResults.length+"行");return allResults;}
+  files=valid;if(typeof XLSX==="undefined"){toast("⚠️ 组件加载中，请稍后重试","warn");return;}let allRows=[],totalFiles=files.length,loaded=0;Array.from(files).forEach(function(file){let reader=new FileReader();reader.onload=function(e){try{allRows=allRows.concat(parseExcelFile(e.target.result,file.name));}catch(err){console.error(file.name+":解析失败",err);}loaded++;if(loaded===totalFiles)finishUpload(allRows);};reader.readAsArrayBuffer(file);});}
+function parseExcelFile(data,fileName){let wb=XLSX.read(data,{type:"array"});let allResults=[];wb.SheetNames.forEach(function(sn){let ws=wb.Sheets[sn];if(!ws)return;let rows=XLSX.utils.sheet_to_json(ws,{defval:""});if(!rows.length)return;let headers=Object.keys(rows[0]);let testKws=["部门名称","招考职位","职位名称","专业","学历","工作地点","地区","省份"];let matched={},uniqueCols={};testKws.forEach(function(kw){for(let i=0;i<headers.length;i++){if(headers[i].indexOf(kw)!==-1){matched[kw]=headers[i];break;}}});Object.values(matched).forEach(function(v){uniqueCols[v]=true;});if(Object.keys(matched).length<3||Object.keys(uniqueCols).length<3){let rawRows=XLSX.utils.sheet_to_json(ws,{defval:"",header:1});if(rawRows.length>=2){let newHeaders=rawRows[1];rows=[];for(let r=2;r<rawRows.length;r++){let obj={};for(let c=0;c<newHeaders.length;c++)obj[String(newHeaders[c]||"")]=rawRows[r][c]!==undefined?rawRows[r][c]:"";rows.push(obj);}if(rows.length>0){headers=Object.keys(rows[0]);console.warn(fileName+"/"+sn+":自动跳过说明行");}}}function findCol(keywords){for(let i=0;i<headers.length;i++){let h=headers[i];for(let k=0;k<keywords.length;k++){if(h.indexOf(keywords[k])!==-1)return h;}}return null;}let mDept=findCol(["部门名称","招录机关","用人司局","招录单位","单位名称"]),mTitle=findCol(["招考职位","职位名称","招录职位","岗位名称","职位"]),mLevel=findCol(["机构层级","机构性质","单位层级","层级"]),mAttr=findCol(["职位属性","职位类别","岗位属性","考试类别"]),mMajor=findCol(["专业","学科"]),mEdu=findCol(["学历","文化程度","学位"]),mParty=findCol(["政治面貌"]),mExp=findCol(["基层工作最低年限","基层经验","基层工作年限","工作年限"]),mCount=findCol(["招考人数","招录人数","计划招录","招录计划","招录"]),mRegion=findCol(["地区","省份","所属地区","所在省份","工作所在地"]),mLocation=findCol(["工作地点","工作地址","地点","所在地"]);console.log(fileName+"/"+sn+":检测到表头",JSON.stringify(headers.slice(0,15)));if(!mMajor){console.warn(fileName+"/"+sn+":无「专业」列，跳过。表头="+JSON.stringify(headers));return;}let result=[];rows.forEach(function(row){let region=String(row[mRegion]||"");if(!region&&mLocation){let loc=String(row[mLocation]||"");for(let s in STATE.provinceMap){if(loc.indexOf(s)!==-1){region=s;break;}}}if(!region)return;let count=parseInt(row[mCount])||1;result.push({d:String(row[mDept]||""),t:String(row[mTitle]||""),l:String(row[mLevel]||""),a:String(row[mAttr]||""),m:String(row[mMajor]||""),e:String(row[mEdu]||""),p:String(row[mParty]||""),x:String(row[mExp]||""),c:count,r:region});});if(result.length){console.log(fileName+"/"+sn+":解析"+result.length+"行");allResults=allResults.concat(result);}});console.log(fileName+":共"+wb.SheetNames.length+"个Sheet，有效数据"+allResults.length+"行");return allResults;}
 function finishUpload(allRows){if(!allRows.length){toast("⚠️ 未能解析有效数据，请检查文件格式","warn");return;}STATE.raw=allRows;STATE.meta.userDataLoaded=true;STATE.meta.dataYear=new Date().toISOString().slice(0,10);document.getElementById("dataBadge").textContent="📎 用户数据 ("+formatNum(allRows.length)+"岗)";document.getElementById("dataBadge").className="data-badge user";document.getElementById("statYear").textContent="上传";STATE.sort.key=null;STATE.sort.asc=true;STATE.filters={province:"",major:"",edu:"",party:"",exp:""};STATE.filterHistory=[];updateUndoBtn();document.getElementById("selProvince").value="";document.getElementById("selMajor").value="";document.getElementById("selEdu").value="";document.getElementById("selParty").value="";document.getElementById("selExp").value="";STATE.filtered=STATE.raw.slice();buildMajorIndex();saveFiltersToStorage();document.getElementById("uploadZone").classList.remove("idle");STATE._prevStats=null;dataChanged();renderTable();if(typeof destroyAllCharts==="function")destroyAllCharts();hideEmptyStates();toast("✅ 成功解析 "+formatNum(allRows.length)+" 个岗位","success");}
 
 // ═══════════════════════════════════════════════════════════════
@@ -876,25 +880,25 @@ function finishUpload(allRows){if(!allRows.length){toast("⚠️ 未能解析有
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function hideEmptyStates(){document.getElementById("trendEmpty").style.display="none";document.getElementById("trendCharts").style.display="block";document.getElementById("tableEmpty").style.display="none";document.getElementById("tableContent").style.display="block";}
 function renderTable(){
-  var data=STATE.filtered,tbody=document.getElementById("tableBody"),info=document.getElementById("tableInfo");
-  var scoring=hasProfile();
+  let data=STATE.filtered,tbody=document.getElementById("tableBody"),info=document.getElementById("tableInfo");
+  let scoring=hasProfile();
   document.getElementById("thScore").style.display=scoring?"":"none";
-  var colSpan=scoring?11:10;
-  if(!data.length){info.textContent="暂无匹配岗位";tbody.innerHTML='<tr><td colspan="'+colSpan+'" style="text-align:center;padding:40px;color:var(--muted)">没有岗位匹配当前筛选条件<br><small>试试调整专业关键词或放宽学历要求</small></td></tr>';return;}
-  var d=data.slice();
-  if(STATE.sort.key){d.sort(function(a,b){var key=STATE.sort.key,va,vb;if(key==="_score"){va=a._score!==null?a._score:-1;vb=b._score!==null?b._score:-1;}else if(key==="c"){va=Number(a[key]);vb=Number(b[key]);}else{va=String(a[key]||"");vb=String(b[key]||"");}if(va<vb)return STATE.sort.asc?-1:1;if(va>vb)return STATE.sort.asc?1:-1;return 0;});}
+  let colSpan=scoring?11:10;
+  if(!data.length){info.textContent="暂无匹配岗位";tbody.innerHTML='<tr><td colspan="'+colSpan+'" style="text-align:center;padding:40px;color:let(--muted)">没有岗位匹配当前筛选条件<br><small>试试调整专业关键词或放宽学历要求</small></td></tr>';return;}
+  let d=data.slice();
+  if(STATE.sort.key){d.sort(function(a,b){let key=STATE.sort.key,va,vb;if(key==="_score"){va=a._score!==null?a._score:-1;vb=b._score!==null?b._score:-1;}else if(key==="c"){va=Number(a[key]);vb=Number(b[key]);}else{va=String(a[key]||"");vb=String(b[key]||"");}if(va<vb)return STATE.sort.asc?-1:1;if(va>vb)return STATE.sort.asc?1:-1;return 0;});}
   STATE._displayed=d;
-  var totalPages=Math.ceil(d.length/STATE.pageSize)||1;
+  let totalPages=Math.ceil(d.length/STATE.pageSize)||1;
   if(STATE.page>totalPages)STATE.page=totalPages;
-  var start=(STATE.page-1)*STATE.pageSize,disp=d.slice(start,start+STATE.pageSize);
+  let start=(STATE.page-1)*STATE.pageSize,disp=d.slice(start,start+STATE.pageSize);
   info.textContent="共 "+formatNum(data.length)+" 条 · 第 "+STATE.page+"/"+totalPages+" 页 · 点击行查看详情";
-  if(scoring){var ss=computeScoreStats(data);document.getElementById("scoreSummary").textContent=ss?"均分 "+ss.avg+"分 | ⭐"+(ss.dist["强烈推荐"]+ss.dist["推荐"])+" 个推荐":"";}else{document.getElementById("scoreSummary").textContent="";}
-  tbody.innerHTML=disp.map(function(r,i){var idx=d.indexOf(r);var row="";if(scoring){var g=scoreGrade(r._score),l=scoreLabel(r._score);row+='<td><span class="score-cell '+g+'">'+(r._score!==null?l:"—")+'</span></td>';}row+="<td>"+esc(r.d)+"</td><td>"+esc(r.t)+"</td><td>"+esc(r.l)+"</td><td>"+esc(r.e)+"</td><td>"+(esc(r.p)||"不限")+"</td><td>"+(esc(r.x)||"无限制")+"</td><td>"+r.c+"</td><td>"+esc(r.r)+"</td>";var checked=STATE.compareSet.indexOf(idx)!==-1?" checked":"";return'<tr class="clickable-row" data-idx="'+idx+'"><td style="text-align:center"><input type="checkbox" class="compare-cb" data-idx="'+idx+'"'+checked+'></td>'+row+"</tr>";}).join("");
+  if(scoring){let ss=computeScoreStats(data);document.getElementById("scoreSummary").textContent=ss?"均分 "+ss.avg+"分 | ⭐"+(ss.dist["强烈推荐"]+ss.dist["推荐"])+" 个推荐":"";}else{document.getElementById("scoreSummary").textContent="";}
+  tbody.innerHTML=disp.map(function(r,i){let idx=d.indexOf(r);let row="";if(scoring){let g=scoreGrade(r._score),l=scoreLabel(r._score);row+='<td><span class="score-cell '+g+'">'+(r._score!==null?l:"—")+'</span></td>';}row+="<td>"+esc(r.d)+"</td><td>"+esc(r.t)+"</td><td>"+esc(r.l)+"</td><td>"+esc(r.e)+"</td><td>"+(esc(r.p)||"不限")+"</td><td>"+(esc(r.x)||"无限制")+"</td><td>"+r.c+"</td><td>"+esc(r.r)+"</td>";let checked=STATE.compareSet.indexOf(idx)!==-1?" checked":"";return'<tr class="clickable-row" data-idx="'+idx+'"><td style="text-align:center"><input type="checkbox" class="compare-cb" data-idx="'+idx+'"'+checked+'></td>'+row+"</tr>";}).join("");
   updatePagination();
 }
 function updatePagination(){
-  var d=STATE._displayed||[],tp=Math.ceil(d.length/STATE.pageSize)||1;
-  var pg=document.getElementById("pagination");
+  let d=STATE._displayed||[],tp=Math.ceil(d.length/STATE.pageSize)||1;
+  let pg=document.getElementById("pagination");
   if(tp<=1){pg.style.display="none";return;}
   pg.style.display="flex";
   document.getElementById("pageInfo").textContent="第 "+STATE.page+"/"+tp+" 页（共 "+formatNum(d.length)+" 条）";
@@ -902,22 +906,22 @@ function updatePagination(){
   document.getElementById("btnPageNext").disabled=STATE.page>=tp;
 }
 function goPage(dir){
-  var d=STATE._displayed||[],tp=Math.ceil(d.length/STATE.pageSize)||1;
+  let d=STATE._displayed||[],tp=Math.ceil(d.length/STATE.pageSize)||1;
   STATE.page=Math.max(1,Math.min(tp,STATE.page+dir));
   renderTable();updatePagination();
 }
 function setSort(key){if(STATE.sort.key===key)STATE.sort.asc=!STATE.sort.asc;else{STATE.sort.key=key;STATE.sort.asc=hasProfile()&&key==="_score"?false:true;}renderTable();updateSortArrows();}
-function updateSortArrows(){document.querySelectorAll(".table-wrap th").forEach(function(th){var key=th.getAttribute("data-sort");if(!key)return;th.textContent=th.textContent.replace(/ [▴▾]/g,"");});if(STATE.sort.key){var at=document.querySelector('.table-wrap th[data-sort="'+STATE.sort.key+'"]');if(at)at.textContent+=STATE.sort.asc?" ▴":" ▾";}}
-document.addEventListener("DOMContentLoaded",function(){var thead=document.querySelector(".table-wrap thead");if(thead){thead.addEventListener("click",function(e){var th=e.target.closest("th");if(!th)return;var key=th.getAttribute("data-sort");if(key)setSort(key);});}});
+function updateSortArrows(){document.querySelectorAll(".table-wrap th").forEach(function(th){let key=th.getAttribute("data-sort");if(!key)return;th.textContent=th.textContent.replace(/ [▴▾]/g,"");});if(STATE.sort.key){let at=document.querySelector('.table-wrap th[data-sort="'+STATE.sort.key+'"]');if(at)at.textContent+=STATE.sort.asc?" ▴":" ▾";}}
+document.addEventListener("DOMContentLoaded",function(){let thead=document.querySelector(".table-wrap thead");if(thead){thead.addEventListener("click",function(e){let th=e.target.closest("th");if(!th)return;let key=th.getAttribute("data-sort");if(key)setSort(key);});}});
 // 表格行点击 → 详情弹窗（点复选框不触发弹窗）
-document.addEventListener("click",function(e){if(e.target.closest("input.compare-cb"))return;if(e.target.closest("#cbSelectAll"))return;var tr=e.target.closest("tr.clickable-row");if(!tr)return;var idx=parseInt(tr.getAttribute("data-idx"));var row=STATE._displayed&&STATE._displayed[idx];if(row)openModal(row);});
+document.addEventListener("click",function(e){if(e.target.closest("input.compare-cb"))return;if(e.target.closest("#cbSelectAll"))return;let tr=e.target.closest("tr.clickable-row");if(!tr)return;let idx=parseInt(tr.getAttribute("data-idx"));let row=STATE._displayed&&STATE._displayed[idx];if(row)openModal(row);});
 // 复选框变更 → 更新对比集
 document.addEventListener("change",function(e){
   if(!e.target.classList.contains("compare-cb")&&e.target.id!=="cbSelectAll")return;
-  var cb=e.target,idx=parseInt(cb.getAttribute("data-idx"));
+  let cb=e.target,idx=parseInt(cb.getAttribute("data-idx"));
   if(cb.id==="cbSelectAll"){
     STATE.compareSet=[];
-    if(cb.checked){var d=STATE._displayed||[];for(var i=0;i<Math.min(d.length,3);i++)STATE.compareSet.push(i);}
+    if(cb.checked){let d=STATE._displayed||[];for(let i=0;i<Math.min(d.length,3);i++)STATE.compareSet.push(i);}
     document.querySelectorAll(".compare-cb").forEach(function(c){c.checked=cb.checked&&parseInt(c.getAttribute("data-idx"))<3;});
   }else{
     if(cb.checked){if(STATE.compareSet.length>=3){cb.checked=false;toast("最多对比3个岗位","warn");return;}STATE.compareSet.push(idx);}
@@ -926,19 +930,19 @@ document.addEventListener("change",function(e){
   }
   updateCompareBtn();
 });
-function updateCompareBtn(){var b=document.getElementById("btnCompare"),n=STATE.compareSet.length;b.disabled=n<2;b.textContent=n?"⚖ 对比选中 ("+n+")":"⚖ 对比选中";}
+function updateCompareBtn(){let b=document.getElementById("btnCompare"),n=STATE.compareSet.length;b.disabled=n<2;b.textContent=n?"⚖ 对比选中 ("+n+")":"⚖ 对比选中";}
 function openCompare(){
-  var d=STATE._displayed||[],items=STATE.compareSet.map(function(i){return d[i];}).filter(Boolean);
+  let d=STATE._displayed||[],items=STATE.compareSet.map(function(i){return d[i];}).filter(Boolean);
   if(items.length<2)return;
-  var fields=[{k:"d",l:"部门名称"},{k:"t",l:"职位名称"},{k:"l",l:"机构层级"},{k:"a",l:"职位属性"},{k:"m",l:"专业要求"},{k:"e",l:"学历要求"},{k:"p",l:"政治面貌"},{k:"x",l:"基层经验"},{k:"c",l:"招考人数"},{k:"r",l:"省份"}];
-  var html='<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th style="padding:8px;background:var(--border);text-align:left">字段</th>';
-  items.forEach(function(it,i){html+='<th style="padding:8px;background:var(--accent-light);text-align:left;color:var(--primary)">岗位'+(i+1)+'</th>';});
+  let fields=[{k:"d",l:"部门名称"},{k:"t",l:"职位名称"},{k:"l",l:"机构层级"},{k:"a",l:"职位属性"},{k:"m",l:"专业要求"},{k:"e",l:"学历要求"},{k:"p",l:"政治面貌"},{k:"x",l:"基层经验"},{k:"c",l:"招考人数"},{k:"r",l:"省份"}];
+  let html='<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th style="padding:8px;background:let(--border);text-align:left">字段</th>';
+  items.forEach(function(it,i){html+='<th style="padding:8px;background:let(--accent-light);text-align:left;color:let(--primary)">岗位'+(i+1)+'</th>';});
   html+='</tr></thead><tbody>';
-  fields.forEach(function(f){html+='<tr><td style="padding:8px;border-bottom:1px solid var(--border);font-weight:600;color:var(--muted);white-space:nowrap">'+f.l+'</td>';items.forEach(function(it){var v=it[f.k]||"—";if(f.k==="c")v=v+" 人";if(f.k==="p"&&!v)v="不限";if(f.k==="x"&&!v)v="无限制";html+='<td style="padding:8px;border-bottom:1px solid var(--border)">'+v+'</td>';});html+='</tr>';});
+  fields.forEach(function(f){html+='<tr><td style="padding:8px;border-bottom:1px solid let(--border);font-weight:600;color:let(--muted);white-space:nowrap">'+f.l+'</td>';items.forEach(function(it){let v=it[f.k]||"—";if(f.k==="c")v=v+" 人";if(f.k==="p"&&!v)v="不限";if(f.k==="x"&&!v)v="无限制";html+='<td style="padding:8px;border-bottom:1px solid let(--border)">'+v+'</td>';});html+='</tr>';});
   // 评分对比
   if(items[0]._score!==null&&items[0]._score!==undefined){
-    html+='<tr><td style="padding:8px;border-bottom:1px solid var(--border);font-weight:600;color:var(--muted)">⭐ 匹配评分</td>';
-    items.forEach(function(it){var s=it._score,l=scoreLabel(it._score);html+='<td style="padding:8px;border-bottom:1px solid var(--border);font-weight:700;color:var(--primary)">'+s+'分 <span style="font-size:11px">'+l+'</span></td>';});
+    html+='<tr><td style="padding:8px;border-bottom:1px solid let(--border);font-weight:600;color:let(--muted)">⭐ 匹配评分</td>';
+    items.forEach(function(it){let s=it._score,l=scoreLabel(it._score);html+='<td style="padding:8px;border-bottom:1px solid let(--border);font-weight:700;color:let(--primary)">'+s+'分 <span style="font-size:11px">'+l+'</span></td>';});
     html+='</tr>';
   }
   html+='</tbody></table>';
@@ -946,7 +950,7 @@ function openCompare(){
   document.getElementById("modalBody").innerHTML=html;
   document.getElementById("modalOverlay").style.display="flex";
 }
-function exportCSV(){var data=STATE.filtered;if(!data.length){toast("⚠️ 没有数据可导出","warn");return;}var scoring=hasProfile();var headers=scoring?["评分","部门名称","职位名称","机构层级","学历要求","政治面貌","基层经验","招考人数","省份"]:["部门名称","职位名称","机构层级","学历要求","政治面貌","基层经验","招考人数","省份"];var keys=scoring?["_score","d","t","l","e","p","x","c","r"]:["d","t","l","e","p","x","c","r"];var csv="﻿"+headers.join(",")+"\n";data.forEach(function(r){csv+=keys.map(function(k){var v=(k==="_score")?(r._score!==null?scoreLabel(r._score):""):(r[k]||"");return'"'+String(v).replace(/"/g,'""')+'"';}).join(",")+"\n";});var blob=new Blob([csv],{type:"text/csv;charset=utf-8"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download="SheetLens筛选结果_"+new Date().toISOString().slice(0,10)+".csv";a.click();URL.revokeObjectURL(url);toast("📥 已导出 "+formatNum(data.length)+" 条数据","success");}
+function exportCSV(){let data=STATE.filtered;if(!data.length){toast("⚠️ 没有数据可导出","warn");return;}let scoring=hasProfile();let headers=scoring?["评分","部门名称","职位名称","机构层级","学历要求","政治面貌","基层经验","招考人数","省份"]:["部门名称","职位名称","机构层级","学历要求","政治面貌","基层经验","招考人数","省份"];let keys=scoring?["_score","d","t","l","e","p","x","c","r"]:["d","t","l","e","p","x","c","r"];let csv="﻿"+headers.join(",")+"\n";data.forEach(function(r){csv+=keys.map(function(k){let v=(k==="_score")?(r._score!==null?scoreLabel(r._score):""):(r[k]||"");return'"'+String(v).replace(/"/g,'""')+'"';}).join(",")+"\n";});let blob=new Blob([csv],{type:"text/csv;charset=utf-8"});let url=URL.createObjectURL(blob);let a=document.createElement("a");a.href=url;a.download="SheetLens筛选结果_"+new Date().toISOString().slice(0,10)+".csv";a.click();URL.revokeObjectURL(url);toast("📥 已导出 "+formatNum(data.length)+" 条数据","success");}
 
 // ── 图表暗色适配 ──
 function themeTC(){return document.documentElement.getAttribute("data-theme")==="dark"?"#d5d0c8":"#2d2a26";}
@@ -955,18 +959,18 @@ function themeLabelC(){return document.documentElement.getAttribute("data-theme"
 // ═══════════════════════════════════════════════════════════════
 //  MAP
 // ═══════════════════════════════════════════════════════════════
-var mapChart=null,chinaGeoLoaded=false;
-function loadChinaGeo(){var _g=localStorage.getItem('sheetlens_geojson');if(_g){try{echarts.registerMap('china',JSON.parse(_g));chinaGeoLoaded=true;return Promise.resolve();}catch(e){localStorage.removeItem('sheetlens_geojson');}}return fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json').then(function(r){return r.json();}).then(function(geo){try{localStorage.setItem('sheetlens_geojson',JSON.stringify(geo));}catch(e){}echarts.registerMap('china',geo);chinaGeoLoaded=true;});}
+let mapChart=null,chinaGeoLoaded=false;
+function loadChinaGeo(){let _g=localStorage.getItem('gwy_sheetlens_geojson') || localStorage.getItem('sheetlens_geojson');if(_g){try{echarts.registerMap('china',JSON.parse(_g));chinaGeoLoaded=true;return Promise.resolve();}catch(e){localStorage.removeItem('gwy_sheetlens_geojson');}}return fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json').then(function(r){return r.json();}).then(function(geo){try{localStorage.setItem('gwy_sheetlens_geojson',JSON.stringify(geo));}catch(e){}echarts.registerMap('china',geo);chinaGeoLoaded=true;});}
 function destroyMapChart(){if(mapChart&&!mapChart.isDisposed()){mapChart.dispose();mapChart=null;}chinaGeoLoaded=false;}
 function renderMap(){
-  var el=document.getElementById("chartMap");if(!el)return;
+  let el=document.getElementById("chartMap");if(!el)return;
   if(!echartsReady())return;
   if(!STATE.raw.length)return;
   if(!mapChart||mapChart.isDisposed())mapChart=echarts.init(el);
-  var provDist=getProvinceDistribution();
-  var mapData=Object.keys(provDist).map(function(s){var d=provDist[s];return{name:d.name,value:d.filtered,total:d.total,majorMatch:d.majorMatch,majorLabel:d.majorLabel,shortName:d.shortName};});
-  var maxVal=Math.max.apply(null,mapData.map(function(d){return d.value;}).concat([1]));
-  var tc=themeTC(),opt={title:{text:"各省岗位分布（点击省份筛选）",left:"center",top:8,textStyle:{fontSize:16,color:tc}},tooltip:{trigger:"item",formatter:function(p){if(!p.data||!p.data.total)return(p.name||"")+"<br/>暂无数据";var tip="<b>"+(p.data.shortName||p.name)+"</b><br/>当前筛选: "+(p.data.value||0)+" 岗<br/>全省总数: "+p.data.total+" 岗";if(p.data.majorLabel)tip+="<br/>「"+p.data.majorLabel+"」相关: "+p.data.majorMatch+" 岗";return tip;}},visualMap:{min:0,max:maxVal,text:["多","少"],inRange:{color:["#fef5e7","#fad7a0","#f0a04b","#e67e22","#c0392b"]},calculable:true,left:20,bottom:20},series:[{type:"map",map:"china",roam:true,zoom:1.15,top:30,label:{show:true,fontSize:10,color:themeLabelC()},emphasis:{label:{show:true,fontSize:14,fontWeight:"bold"}},data:mapData}]};
+  let provDist=getProvinceDistribution();
+  let mapData=Object.keys(provDist).map(function(s){let d=provDist[s];return{name:d.name,value:d.filtered,total:d.total,majorMatch:d.majorMatch,majorLabel:d.majorLabel,shortName:d.shortName};});
+  let maxVal=Math.max.apply(null,mapData.map(function(d){return d.value;}).concat([1]));
+  let tc=themeTC(),opt={title:{text:"各省岗位分布（点击省份筛选）",left:"center",top:8,textStyle:{fontSize:16,color:tc}},tooltip:{trigger:"item",formatter:function(p){if(!p.data||!p.data.total)return(p.name||"")+"<br/>暂无数据";let tip="<b>"+(p.data.shortName||p.name)+"</b><br/>当前筛选: "+(p.data.value||0)+" 岗<br/>全省总数: "+p.data.total+" 岗";if(p.data.majorLabel)tip+="<br/>「"+p.data.majorLabel+"」相关: "+p.data.majorMatch+" 岗";return tip;}},visualMap:{min:0,max:maxVal,text:["多","少"],inRange:{color:["#fef5e7","#fad7a0","#f0a04b","#e67e22","#c0392b"]},calculable:true,left:20,bottom:20},series:[{type:"map",map:"china",roam:true,zoom:1.15,top:30,label:{show:true,fontSize:10,color:themeLabelC()},emphasis:{label:{show:true,fontSize:14,fontWeight:"bold"}},data:mapData}]};
   if(!chinaGeoLoaded){mapChart.showLoading({text:"加载地图数据..."});loadChinaGeo().then(function(){mapChart.hideLoading();mapChart.setOption(opt);}).catch(function(){mapChart.hideLoading();mapChart.setOption({title:{text:"地图加载失败，请检查网络连接",left:"center",top:"center",textStyle:{color:"#999",fontSize:16}}});});return;}
   mapChart.setOption(opt);mapChart.off("click");mapChart.on("click",function(p){if(p.data&&p.data.shortName){document.getElementById("selProvince").value=p.data.shortName;handleFilterApply();}});
 }
@@ -975,11 +979,11 @@ window.addEventListener("resize",function(){if(mapChart&&!mapChart.isDisposed()&
 // ═══════════════════════════════════════════════════════════════
 //  TREND — 7 charts
 // ═══════════════════════════════════════════════════════════════
-var trendCharts={};
+let trendCharts={};
 function destroyTrendCharts(){Object.keys(trendCharts).forEach(function(k){if(trendCharts[k]&&!trendCharts[k].isDisposed())trendCharts[k].dispose();});trendCharts={};}
-function getChart(id){if(!trendCharts[id]||trendCharts[id].isDisposed()){var el=document.getElementById(id);if(!el)return null;trendCharts[id]=echarts.init(el);}return trendCharts[id];}
+function getChart(id){if(!trendCharts[id]||trendCharts[id].isDisposed()){let el=document.getElementById(id);if(!el)return null;trendCharts[id]=echarts.init(el);}return trendCharts[id];}
 // 7套独立配色，每张图有自己的视觉辨识度
-var CP={
+let CP={
   warm:["#e67e22","#f39c12","#f5b041","#fad7a0","#fdebd0"],
   sunset:["#e74c3c","#c0392b","#ec7063","#f1948a","#f5b7b1"],
   ocean:["#2980b9","#2471a3","#5dade2","#85c1e9","#aed6f1"],
@@ -991,38 +995,38 @@ var CP={
 function renderTrend(){
   if(!echartsReady())return;
   if(!STATE.filtered.length){
-    var ec=themeMC();
+    let ec=themeMC();
     ["chartBar1","chartPie1","chartPie2","chartPie3","chartPie4","chartBar2","chartPie5"].forEach(function(id){
-      var c=getChart(id);if(c)c.setOption({title:{text:"",left:"center"},series:[],xAxis:{show:false},yAxis:{show:false}},true);
+      let c=getChart(id);if(c)c.setOption({title:{text:"",left:"center"},series:[],xAxis:{show:false},yAxis:{show:false}},true);
     });
-    var c0=getChart("chartBar1");
+    let c0=getChart("chartBar1");
     if(c0)c0.setOption({title:{text:"当前筛选无匹配岗位",subtext:"试试调整专业关键词或放宽条件",left:"center",top:"center",textStyle:{color:ec,fontSize:16},subtextStyle:{color:ec,fontSize:12}},xAxis:{show:false},yAxis:{show:false},series:[]});
     return;
   }
-  var tc=themeTC(),A=STATE.analytics;
-  var c1=getChart("chartBar1");if(c1)c1.setOption({title:{text:"岗位数量 Top10 省份",left:"center",textStyle:{fontSize:14,color:tc}},tooltip:{trigger:"axis"},grid:{left:70,right:30,top:50,bottom:70},xAxis:{type:"category",data:A.topProvinces.map(function(d){return d.name;}),axisLabel:{rotate:45,fontSize:11}},yAxis:{type:"value",name:"岗位数"},series:[{type:"bar",data:A.topProvinces.map(function(d){return{value:d.value,itemStyle:{color:CP.warm[0]}};}),barWidth:"50%"}]});
-  var c2=getChart("chartPie1");if(c2)c2.setOption({title:{text:"机构层级分布",left:"center",textStyle:{fontSize:14,color:tc}},tooltip:{trigger:"item",formatter:"{b}:{c}({d}%)"},series:[{type:"pie",radius:"60%",center:["50%","50%"],data:Object.keys(A.levelCounts).map(function(k){return{name:k,value:A.levelCounts[k]};}),label:{formatter:"{b}\n{d}%"},color:CP.sunset}]});
-  var c3=getChart("chartPie2");if(c3)c3.setOption({title:{text:"学历要求分布",left:"center",textStyle:{fontSize:14,color:tc}},tooltip:{trigger:"item",formatter:"{b}:{c}({d}%)"},legend:{bottom:0},series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.keys(A.eduCounts).map(function(k){return{name:k,value:A.eduCounts[k]};}),label:{formatter:"{b}\n{d}%"},color:CP.ocean}]});
-  var c4=getChart("chartPie3");if(c4)c4.setOption({title:{text:"政治面貌要求",left:"center",textStyle:{fontSize:14,color:tc}},tooltip:{trigger:"item",formatter:"{b}:{c}({d}%)"},legend:{bottom:0},series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.keys(A.partyCounts).map(function(k){return{name:k,value:A.partyCounts[k]};}),label:{formatter:"{b}\n{d}%"},color:CP.plum}]});
-  var c5=getChart("chartPie4");if(c5)c5.setOption({title:{text:"职位属性分布",left:"center",textStyle:{fontSize:14,color:tc}},tooltip:{trigger:"item",formatter:"{b}:{c}({d}%)"},legend:{bottom:0},series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.keys(A.attrCounts).map(function(k){return{name:k||"未分类",value:A.attrCounts[k]};}),label:{formatter:"{b}\n{d}%"},color:CP.forest}]});
-  var c6=getChart("chartBar2");if(c6)c6.setOption({title:{text:"招录部门 Top10",left:"center",textStyle:{fontSize:14,color:tc}},tooltip:{trigger:"axis"},grid:{left:120,right:30,top:40,bottom:70},xAxis:{type:"value",name:"岗位数"},yAxis:{type:"category",data:A.deptTop10.map(function(d){return d.name;}).reverse(),axisLabel:{fontSize:11},inverse:true},series:[{type:"bar",data:A.deptTop10.map(function(d){return{value:d.value,itemStyle:{color:CP.slate[0]}};}).reverse(),barWidth:"60%"}]});
-  var c7=getChart("chartPie5");if(c7)c7.setOption({title:{text:"基层经验要求",left:"center",textStyle:{fontSize:14,color:tc}},tooltip:{trigger:"item",formatter:"{b}:{c}({d}%)"},legend:{bottom:0},series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.keys(A.expCounts).map(function(k){return{name:k,value:A.expCounts[k]};}),label:{formatter:"{b}\n{d}%"},color:CP.amber}]});
+  let tc=themeTC(),A=STATE.analytics;
+  let c1=getChart("chartBar1");if(c1)c1.setOption({title:{text:"岗位数量 Top10 省份",left:"center",textStyle:{fontSize:14,color:tc}},tooltip:{trigger:"axis"},grid:{left:70,right:30,top:50,bottom:70},xAxis:{type:"category",data:A.topProvinces.map(function(d){return d.name;}),axisLabel:{rotate:45,fontSize:11}},yAxis:{type:"value",name:"岗位数"},series:[{type:"bar",data:A.topProvinces.map(function(d){return{value:d.value,itemStyle:{color:CP.warm[0]}};}),barWidth:"50%"}]});
+  let c2=getChart("chartPie1");if(c2)c2.setOption({title:{text:"机构层级分布",left:"center",textStyle:{fontSize:14,color:tc}},tooltip:{trigger:"item",formatter:"{b}:{c}({d}%)"},series:[{type:"pie",radius:"60%",center:["50%","50%"],data:Object.keys(A.levelCounts).map(function(k){return{name:k,value:A.levelCounts[k]};}),label:{formatter:"{b}\n{d}%"},color:CP.sunset}]});
+  let c3=getChart("chartPie2");if(c3)c3.setOption({title:{text:"学历要求分布",left:"center",textStyle:{fontSize:14,color:tc}},tooltip:{trigger:"item",formatter:"{b}:{c}({d}%)"},legend:{bottom:0},series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.keys(A.eduCounts).map(function(k){return{name:k,value:A.eduCounts[k]};}),label:{formatter:"{b}\n{d}%"},color:CP.ocean}]});
+  let c4=getChart("chartPie3");if(c4)c4.setOption({title:{text:"政治面貌要求",left:"center",textStyle:{fontSize:14,color:tc}},tooltip:{trigger:"item",formatter:"{b}:{c}({d}%)"},legend:{bottom:0},series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.keys(A.partyCounts).map(function(k){return{name:k,value:A.partyCounts[k]};}),label:{formatter:"{b}\n{d}%"},color:CP.plum}]});
+  let c5=getChart("chartPie4");if(c5)c5.setOption({title:{text:"职位属性分布",left:"center",textStyle:{fontSize:14,color:tc}},tooltip:{trigger:"item",formatter:"{b}:{c}({d}%)"},legend:{bottom:0},series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.keys(A.attrCounts).map(function(k){return{name:k||"未分类",value:A.attrCounts[k]};}),label:{formatter:"{b}\n{d}%"},color:CP.forest}]});
+  let c6=getChart("chartBar2");if(c6)c6.setOption({title:{text:"招录部门 Top10",left:"center",textStyle:{fontSize:14,color:tc}},tooltip:{trigger:"axis"},grid:{left:120,right:30,top:40,bottom:70},xAxis:{type:"value",name:"岗位数"},yAxis:{type:"category",data:A.deptTop10.map(function(d){return d.name;}).reverse(),axisLabel:{fontSize:11},inverse:true},series:[{type:"bar",data:A.deptTop10.map(function(d){return{value:d.value,itemStyle:{color:CP.slate[0]}};}).reverse(),barWidth:"60%"}]});
+  let c7=getChart("chartPie5");if(c7)c7.setOption({title:{text:"基层经验要求",left:"center",textStyle:{fontSize:14,color:tc}},tooltip:{trigger:"item",formatter:"{b}:{c}({d}%)"},legend:{bottom:0},series:[{type:"pie",radius:["35%","60%"],center:["50%","45%"],data:Object.keys(A.expCounts).map(function(k){return{name:k,value:A.expCounts[k]};}),label:{formatter:"{b}\n{d}%"},color:CP.amber}]});
 }
-window.addEventListener("resize",function(){if(!document.getElementById("tab-trend")||!document.getElementById("tab-trend").classList.contains("active"))return;Object.keys(trendCharts).forEach(function(k){var c=trendCharts[k];if(c&&!c.isDisposed())c.resize();});});
+window.addEventListener("resize",function(){if(!document.getElementById("tab-trend")||!document.getElementById("tab-trend").classList.contains("active"))return;Object.keys(trendCharts).forEach(function(k){let c=trendCharts[k];if(c&&!c.isDisposed())c.resize();});});
 
 // ═══════════════════════════════════════════════════════════════
 //  APP CONTROLLER
 // ═══════════════════════════════════════════════════════════════
-var currentTab="map";
-function switchTab(tab){currentTab=tab;document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");if(b.getAttribute("data-tab")===tab)b.classList.add("active");});document.querySelectorAll(".tab-content").forEach(function(c){c.classList.remove("active");});var el=document.getElementById("tab-"+tab);if(el)el.classList.add("active");onTabChanged(tab);}
+let currentTab="map";
+function switchTab(tab){currentTab=tab;document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");if(b.getAttribute("data-tab")===tab)b.classList.add("active");});document.querySelectorAll(".tab-content").forEach(function(c){c.classList.remove("active");});let el=document.getElementById("tab-"+tab);if(el)el.classList.add("active");onTabChanged(tab);}
 function onTabChanged(tab){if(tab==="trend")setTimeout(function(){if(STATE.raw.length)renderTrend();},200);if(tab==="map")setTimeout(function(){if(echartsReady()&&mapChart&&!mapChart.isDisposed())mapChart.resize();},200);}
 function renderAll(){if(currentTab==="map")renderMap();else if(currentTab==="trend"&&STATE.raw.length)renderTrend();else if(currentTab==="table")renderTable();}
 
 // 标签
-document.querySelectorAll(".tab-btn").forEach(function(btn){btn.addEventListener("click",function(){var t=btn.getAttribute("data-tab");if(t)switchTab(t);});});
+document.querySelectorAll(".tab-btn").forEach(function(btn){btn.addEventListener("click",function(){let t=btn.getAttribute("data-tab");if(t)switchTab(t);});});
 
 // 快捷标签
-document.querySelectorAll(".quick-tag").forEach(function(tag){tag.addEventListener("click",function(){var action=tag.getAttribute("data-action");var val=tag.getAttribute("data-val");tag.classList.toggle("active");if(tag.classList.contains("active")){document.querySelectorAll(".quick-tag[data-action='"+action+"']").forEach(function(t){if(t!==tag)t.classList.remove("active");});if(action==="major"){document.getElementById("selMajor").value=val||"";}else if(action==="edu"){document.getElementById("selEdu").value=val;}else if(action==="party"){document.getElementById("selParty").value=val;}else if(action==="exp"){document.getElementById("selExp").value=val;}}else{if(action==="major"){document.getElementById("selMajor").value="";}else if(action==="edu"){document.getElementById("selEdu").value="";}else if(action==="party"){document.getElementById("selParty").value="";}else if(action==="exp"){document.getElementById("selExp").value="";}}handleFilterApply();});});
+document.querySelectorAll(".quick-tag").forEach(function(tag){tag.addEventListener("click",function(){let action=tag.getAttribute("data-action");let val=tag.getAttribute("data-val");tag.classList.toggle("active");if(tag.classList.contains("active")){document.querySelectorAll(".quick-tag[data-action='"+action+"']").forEach(function(t){if(t!==tag)t.classList.remove("active");});if(action==="major"){document.getElementById("selMajor").value=val||"";}else if(action==="edu"){document.getElementById("selEdu").value=val;}else if(action==="party"){document.getElementById("selParty").value=val;}else if(action==="exp"){document.getElementById("selExp").value=val;}}else{if(action==="major"){document.getElementById("selMajor").value="";}else if(action==="edu"){document.getElementById("selEdu").value="";}else if(action==="party"){document.getElementById("selParty").value="";}else if(action==="exp"){document.getElementById("selExp").value="";}}handleFilterApply();});});
 
 // 筛选/重置
 document.getElementById("btnFilter").addEventListener("click",handleFilterApply);
@@ -1032,7 +1036,7 @@ function handleFilterApply(){STATE.filterHistory.push({province:STATE.filters.pr
 function handleFilterReset(){document.getElementById("selProvince").value="";document.getElementById("selMajor").value="";document.getElementById("selEdu").value="";document.getElementById("selParty").value="";document.getElementById("selExp").value="";document.querySelectorAll(".quick-tag").forEach(function(t){t.classList.remove("active");});STATE.filters={province:"",major:"",edu:"",party:"",exp:""};STATE.sort.key=null;STATE.sort.asc=true;STATE.filtered=STATE.raw.slice();saveFiltersToStorage();STATE._prevStats=null;STATE.filterHistory=[];updateUndoBtn();recompute();updateStatsUI();renderAll();}
 function undoFilter(){
   if(!STATE.filterHistory.length)return;
-  var prev=STATE.filterHistory.pop();updateUndoBtn();
+  let prev=STATE.filterHistory.pop();updateUndoBtn();
   STATE.filters=prev;
   document.getElementById("selProvince").value=prev.province||"";
   document.getElementById("selMajor").value=prev.major||"";
@@ -1040,7 +1044,7 @@ function undoFilter(){
   document.getElementById("selParty").value=prev.party||"";
   document.getElementById("selExp").value=prev.exp||"";
   document.querySelectorAll(".quick-tag").forEach(function(t){
-    var a=t.getAttribute("data-action"),v=t.getAttribute("data-val");
+    let a=t.getAttribute("data-action"),v=t.getAttribute("data-val");
     t.classList.remove("active");
     if(a==="major"&&prev.major===v)t.classList.add("active");
     else if(a==="edu"&&prev.edu===v)t.classList.add("active");
@@ -1049,9 +1053,9 @@ function undoFilter(){
   });
   saveFiltersToStorage();STATE.page=1;STATE.sort.key=null;STATE.sort.asc=autoSort();filterChanged();
 }
-function updateUndoBtn(){var b=document.getElementById("btnUndo"),n=STATE.filterHistory.length;b.style.display=n?"inline-flex":"none";b.disabled=!n;if(n)b.textContent="↩ 撤销 ("+n+")";}
+function updateUndoBtn(){let b=document.getElementById("btnUndo"),n=STATE.filterHistory.length;b.style.display=n?"inline-flex":"none";b.disabled=!n;if(n)b.textContent="↩ 撤销 ("+n+")";}
 function readFilters(){STATE.filters.province=document.getElementById("selProvince").value;STATE.filters.major=document.getElementById("selMajor").value.trim();STATE.filters.edu=document.getElementById("selEdu").value;STATE.filters.party=document.getElementById("selParty").value;STATE.filters.exp=document.getElementById("selExp").value;}
-function autoSort(){var hasProfile=STATE.filters.major||STATE.filters.edu||STATE.filters.party||STATE.filters.exp;return hasProfile?false:true;}
+function autoSort(){let hasProfile=STATE.filters.major||STATE.filters.edu||STATE.filters.party||STATE.filters.exp;return hasProfile?false:true;}
 function hasProfile(){return !!(STATE.filters.major||STATE.filters.edu||STATE.filters.party||STATE.filters.exp);}
 
 // ═══════════════════════════════════════════════════════════════
@@ -1059,17 +1063,17 @@ function hasProfile(){return !!(STATE.filters.major||STATE.filters.edu||STATE.fi
 // ═══════════════════════════════════════════════════════════════
 function formatNum(n){return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,",");}
 function toast(msg,type){
-  var el=document.createElement("div");el.className="toast"+(type?" "+type:"");el.textContent=msg;
+  let el=document.createElement("div");el.className="toast"+(type?" "+type:"");el.textContent=msg;
   document.body.appendChild(el);setTimeout(function(){el.remove();},2300);
 }
 function renderFilterBadges(){
-  var f=STATE.filters,badges=[];
+  let f=STATE.filters,badges=[];
   if(f.major)badges.push({l:"📚",v:f.major,k:"major"});
   if(f.edu)badges.push({l:"🎓",v:f.edu,k:"edu"});
   if(f.party)badges.push({l:"🏛",v:f.party==="党员"?"中共党员":"无限制",k:"party"});
   if(f.exp)badges.push({l:"📅",v:f.exp==="无限制"?"无限制":f.exp+"及以上",k:"exp"});
   if(f.province)badges.push({l:"📍",v:f.province,k:"province"});
-  var c=document.getElementById("activeFilters"),b=document.getElementById("afBadges");
+  let c=document.getElementById("activeFilters"),b=document.getElementById("afBadges");
   if(!c||!b)return;
   if(!badges.length){c.style.display="none";return;}
   c.style.display="flex";
@@ -1089,10 +1093,10 @@ function clearOneFilter(key){
 function init(){
   // Hide loading skeleton when CDN ready
   (function hideLoader(){
-    var loader=document.getElementById("appLoader"),bar=document.getElementById("loaderBar");
+    let loader=document.getElementById("appLoader"),bar=document.getElementById("loaderBar");
     if(!loader)return;
     bar.style.width="30%";
-    var iv=setInterval(function(){
+    let iv=setInterval(function(){
       bar.style.width=bar.style.width==="30%"?"70%":"30%";
       if(echartsReady()&&typeof XLSX!=="undefined"){
         bar.style.width="100%";
@@ -1116,20 +1120,20 @@ function init(){
   document.getElementById("btnPagePrev").addEventListener("click",function(){goPage(-1);});
   document.getElementById("btnPageNext").addEventListener("click",function(){goPage(1);});
   // ── 主题恢复 ──
-  var saved=loadSettings();
+  let saved=loadSettings();
   if(saved.theme){document.documentElement.setAttribute("data-theme",saved.theme);}
   updateThemeIcon();
   document.getElementById("themeToggle").addEventListener("click",toggleTheme);
   // ── 筛选恢复 ──
   if(saved.filters&&STATE.raw.length===0)restoreFilters(saved.filters);
   // ── 自动筛选：输入/选择变更 300ms 防抖触发 ──
-  var dt;function df(){clearTimeout(dt);dt=setTimeout(function(){saveFiltersToStorage();handleFilterApply();},150);}
+  let dt;function df(){clearTimeout(dt);dt=setTimeout(function(){saveFiltersToStorage();handleFilterApply();},150);}
   ["selMajor","selEdu","selParty","selExp","selProvince"].forEach(function(id){
-    var el=document.getElementById(id);if(!el)return;
+    let el=document.getElementById(id);if(!el)return;
     el.addEventListener("input",df);el.addEventListener("change",df);
   });
   // ── 自动补全：selMajor 额外事件 ──
-  (function(){var ac=document.getElementById("selMajor");if(!ac)return;
+  (function(){let ac=document.getElementById("selMajor");if(!ac)return;
     ac.addEventListener("input",function(){showAC(this.value);});
     ac.addEventListener("focus",function(){if(this.value)showAC(this.value);});
     ac.addEventListener("blur",hideAC);
@@ -1144,27 +1148,27 @@ function init(){
   document.getElementById("modalClose").addEventListener("click",closeModal);
   document.getElementById("modalOverlay").addEventListener("click",function(e){if(e.target===this)closeModal();});
   document.addEventListener("keydown",function(e){if(e.key==="Escape")closeModal();});
-  if(!echartsReady()){var iv=setInterval(function(){if(echartsReady()){clearInterval(iv);document.getElementById("chartStatus").textContent="图表就绪";if(STATE.raw.length)renderMap();}},500);setTimeout(function(){clearInterval(iv);},10000);}
+  if(!echartsReady()){let iv=setInterval(function(){if(echartsReady()){clearInterval(iv);document.getElementById("chartStatus").textContent="图表就绪";if(STATE.raw.length)renderMap();}},500);setTimeout(function(){clearInterval(iv);},10000);}
 }
 // ── 主题切换 ──
 function toggleTheme(){
-  var cur=document.documentElement.getAttribute("data-theme");
-  var next=cur==="dark"?"light":"dark";
+  let cur=document.documentElement.getAttribute("data-theme");
+  let next=cur==="dark"?"light":"dark";
   document.documentElement.setAttribute("data-theme",next);
   updateThemeIcon();
-  var s=loadSettings();s.theme=next;saveSettings(s);
+  let s=loadSettings();s.theme=next;saveSettings(s);
   // 图表重绘以适配新主题
   if(currentTab==="map")renderMap();else if(currentTab==="trend")renderTrend();
 }
 function updateThemeIcon(){
-  var isDark=document.documentElement.getAttribute("data-theme")==="dark";
+  let isDark=document.documentElement.getAttribute("data-theme")==="dark";
   document.getElementById("themeToggle").textContent=isDark?"☀️":"🌙";
 }
 // ── localStorage ──
-function loadSettings(){try{var d=localStorage.getItem("sheetlens_settings");return d?JSON.parse(d):{};}catch(e){return{};}}
-function saveSettings(s){try{localStorage.setItem("sheetlens_settings",JSON.stringify(s));}catch(e){}}
+function loadSettings(){try{let d=localStorage.getItem("gwy_sheetlens_settings") || localStorage.getItem("sheetlens_settings");return d?JSON.parse(d):{};}catch(e){return{};}}
+function saveSettings(s){try{localStorage.setItem("gwy_sheetlens_settings",JSON.stringify(s));}catch(e){}}
 function saveFiltersToStorage(){
-  var s=loadSettings();s.filters={major:document.getElementById("selMajor").value,edu:document.getElementById("selEdu").value,party:document.getElementById("selParty").value,exp:document.getElementById("selExp").value,province:document.getElementById("selProvince").value};saveSettings(s);
+  let s=loadSettings();s.filters={major:document.getElementById("selMajor").value,edu:document.getElementById("selEdu").value,party:document.getElementById("selParty").value,exp:document.getElementById("selExp").value,province:document.getElementById("selProvince").value};saveSettings(s);
 }
 function restoreFilters(f){
   if(f.major)document.getElementById("selMajor").value=f.major;
@@ -1174,7 +1178,7 @@ function restoreFilters(f){
   if(f.province)document.getElementById("selProvince").value=f.province;
   // 同步快捷标签状态
   document.querySelectorAll(".quick-tag").forEach(function(t){
-    var a=t.getAttribute("data-action"),v=t.getAttribute("data-val");
+    let a=t.getAttribute("data-action"),v=t.getAttribute("data-val");
     t.classList.remove("active");
     if(a==="major"&&f.major===v)t.classList.add("active");
     else if(a==="edu"&&f.edu===v)t.classList.add("active");
@@ -1185,11 +1189,11 @@ function restoreFilters(f){
 }
 // ── 详情弹窗 ──
 function openModal(row){
-  var labels={d:"部门名称",t:"职位名称",l:"机构层级",a:"职位属性",m:"专业要求",e:"学历要求",p:"政治面貌",x:"基层经验",c:"招考人数",r:"省份"};
+  let labels={d:"部门名称",t:"职位名称",l:"机构层级",a:"职位属性",m:"专业要求",e:"学历要求",p:"政治面貌",x:"基层经验",c:"招考人数",r:"省份"};
   document.getElementById("modalTitle").textContent=row.t||"岗位详情";
-  var html="";
+  let html="";
   ["d","l","a","m","e","p","x","c","r"].forEach(function(k){
-    var v=row[k]||"";
+    let v=row[k]||"";
     if(k==="c")v=v+" 人";
     html+='<div class="modal-field"><div class="mf-label">'+labels[k]+'</div><div class="mf-value">'+(v||"—")+'</div></div>';
   });
@@ -1197,7 +1201,7 @@ function openModal(row){
   if(row._detail&&row._detail.length){
     html+='<div class="modal-score-detail"><div class="msd-title">⭐ 匹配度分析（总分 '+row._score+' 分 · '+scoreLabel(row._score)+'）</div>';
     row._detail.forEach(function(d){
-      var pct=Math.round(d.p/d.m*100);
+      let pct=Math.round(d.p/d.m*100);
       html+='<div class="modal-score-row"><span class="msr-dim">'+d.d+'</span><div class="msr-bar"><div class="msr-fill" style="width:'+pct+'%"></div></div><span class="msr-num">'+d.p+'/'+d.m+'分 '+d.n+'</span></div>';
     });
     html+='</div>';
@@ -1207,37 +1211,37 @@ function openModal(row){
 }
 function closeModal(){document.getElementById("modalOverlay").style.display="none";}
 // ── 新手引导 ──
-var GUIDE_STEPS=[
+let GUIDE_STEPS=[
   {icon:"📂",title:"上传职位表",desc:"拖拽或点击上传国考/省考 Excel 文件<br>支持 .xlsx / .xls，多文件自动合并",sel:"#uploadZone"},
   {icon:"🔍",title:"填写你的条件",desc:"输入专业关键词（支持模糊匹配+自动补全）<br>选择学历、政治面貌等，自动筛选并评分",sel:".card:first-of-type"},
   {icon:"📊",title:"数据分析可视化",desc:"8张图表：地图热力图 · 省份排名 · 学历分布<br>机构层级 · 政治面貌 · 职位属性 · 部门排名",sel:".tabs"},
   {icon:"⚖",title:"对比与导出",desc:"勾选岗位对比优劣 · 点击行查看详情<br>排序筛选后一键导出 CSV",sel:"#tab-table"}
 ];
-var gStep=0,gEl=null;
+let gStep=0,gEl=null;
 function startGuide(){
   if(loadSettings().__guided)return;
   gStep=0;showGuideStep();
 }
 function showGuideStep(){
-  var s=GUIDE_STEPS[gStep];
+  let s=GUIDE_STEPS[gStep];
   if(gEl){gEl.remove();document.querySelectorAll(".guide-zone-highlight").forEach(function(e){e.classList.remove("guide-zone-highlight");});}
-  var tgt=s.sel?document.querySelector(s.sel):null;
+  let tgt=s.sel?document.querySelector(s.sel):null;
   if(tgt)tgt.classList.add("guide-zone-highlight");
-  var dots="";for(var i=0;i<GUIDE_STEPS.length;i++)dots+='<span'+(i===gStep?' class="active"':'')+'></span>';
-  var isLast=gStep===GUIDE_STEPS.length-1;
-  var html='<div class="guide-overlay" id="guideOverlay"><div class="guide-card"><div class="g-icon">'+s.icon+'</div><h2>'+s.title+'</h2><p>'+s.desc+'</p><div class="guide-steps">'+dots+'</div><div class="guide-btns"><button class="btn btn-ghost btn-sm" id="btnGuideSkip">跳过</button>'+(isLast?'<button class="btn btn-primary" id="btnGuideDone">🚀 开始使用</button>':'<button class="btn btn-primary" id="btnGuideNext">下一步 →</button>')+'</div></div></div>';
-  var wrapper=document.createElement("div");wrapper.innerHTML=html;gEl=wrapper.firstElementChild;document.body.appendChild(gEl);
+  let dots="";for(let i=0;i<GUIDE_STEPS.length;i++)dots+='<span'+(i===gStep?' class="active"':'')+'></span>';
+  let isLast=gStep===GUIDE_STEPS.length-1;
+  let html='<div class="guide-overlay" id="guideOverlay"><div class="guide-card"><div class="g-icon">'+s.icon+'</div><h2>'+s.title+'</h2><p>'+s.desc+'</p><div class="guide-steps">'+dots+'</div><div class="guide-btns"><button class="btn btn-ghost btn-sm" id="btnGuideSkip">跳过</button>'+(isLast?'<button class="btn btn-primary" id="btnGuideDone">🚀 开始使用</button>':'<button class="btn btn-primary" id="btnGuideNext">下一步 →</button>')+'</div></div></div>';
+  let wrapper=document.createElement("div");wrapper.innerHTML=html;gEl=wrapper.firstElementChild;document.body.appendChild(gEl);
   document.getElementById(isLast?"btnGuideDone":"btnGuideNext").addEventListener("click",function(){if(isLast){finishGuide();}else{gStep++;showGuideStep();}});
   document.getElementById("btnGuideSkip").addEventListener("click",finishGuide);
 }
 function finishGuide(){
   if(gEl){gEl.remove();gEl=null;}
   document.querySelectorAll(".guide-zone-highlight").forEach(function(e){e.classList.remove("guide-zone-highlight");});
-  var s=loadSettings();s.__guided=true;saveSettings(s);
+  let s=loadSettings();s.__guided=true;saveSettings(s);
 }
 
 function runTests(){
-  var results=[];
+  let results=[];
   function t(name,fn){try{results.push({name:name,pass:!!fn()});}catch(e){results.push({name:name,pass:false,error:e.message});}}
   // fuzzyMatch tests
   t('fuzzyMatch exact',function(){return fuzzyMatch('political','political');});
@@ -1245,7 +1249,7 @@ function runTests(){
   t('fuzzyMatch no match',function(){return !fuzzyMatch('计算机','政法');});
   t('fuzzyMatch empty',function(){return !fuzzyMatch('','test');});
   // fuzzyMatch tests
-  t('fuzzyMatch returns same',function(){var a=fuzzyMatch('test','t');var b=fuzzyMatch('test','t');return a===b&&_fzCache.size>0;});
+  t('fuzzyMatch returns same',function(){let a=fuzzyMatch('test','t');let b=fuzzyMatch('test','t');return a===b&&_fzCache.size>0;});
   // scoreOne tests (basic)
   t('scoreOne defined',function(){return typeof scoreOne==="function";});
   // applyFilters defined
@@ -1253,9 +1257,9 @@ function runTests(){
   // STATE defined
   t('STATE exists',function(){return typeof STATE!=="undefined"&&STATE!==null;});
   // Output
-  var passed=results.filter(function(r){return r.pass;}).length;
-  var total=results.length;
-  var color=passed===total?'green':passed>=total*0.7?'orange':'red';
+  let passed=results.filter(function(r){return r.pass;}).length;
+  let total=results.length;
+  let color=passed===total?'green':passed>=total*0.7?'orange':'red';
   console.log('%c📋 SheetLens Tests: '+passed+'/'+total+' passed','font-size:16px;font-weight:bold;color:'+color);
   results.forEach(function(r){console.log(r.pass?'  ✅':'  ❌',r.name,r.error?'('+r.error+')':'');});
   if(passed<total)console.warn('⚠ '+(total-passed)+' tests failed');
