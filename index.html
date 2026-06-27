@@ -21,7 +21,8 @@
   --radius: 20px; --radius-sm: 12px;
   --shadow: 0 4px 24px rgba(0,0,0,0.06);
   --shadow-lg: 0 8px 40px rgba(0,0,0,0.10);
-  --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+  --spring: 0.25s cubic-bezier(0.4,0,0.2,1);
+  --spring-bounce: 0.35s cubic-bezier(0.34,1.56,0.64,1);
 }
 /* ── 暗色模式 ── */
 [data-theme="dark"] {
@@ -176,7 +177,7 @@ body {
   display: inline-flex; align-items: center; gap: 6px;
 }
 .btn:hover { transform: translateY(-1px); }
-.btn:active { transform: translateY(0); }
+.btn:active { transform: translateY(0) scale(0.97); transition: all 0.08s; }
 .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(230,126,34,0.3); }
 .btn-primary:hover { background: var(--primary-dark); box-shadow: 0 6px 16px rgba(230,126,34,0.4); }
 .btn-outline { background: #fff; color: var(--primary); border: 1.5px solid var(--primary); }
@@ -225,8 +226,6 @@ body {
   border-radius: 0 0 var(--radius) var(--radius);
   min-height: 480px;
 }
-.tab-content { display: none; }
-.tab-content.active { display: block; }
 .chart-box { width: 100%; height: 480px; }
 .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .chart-half { height: 340px; }
@@ -334,12 +333,14 @@ body {
 }
 .toast.success { background: #1e8449; }
 .toast.warn { background: #b9770e; }
-@keyframes toastIn { from { opacity:0; transform:translateX(-50%) translateY(16px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+@keyframes toastIn { from { opacity:0; transform:translateX(-50%) translateY(16px) scale(0.92); } to { opacity:1; transform:translateX(-50%) translateY(0) scale(1); } }
 @keyframes toastOut { from { opacity:1; } to { opacity:0; transform:translateX(-50%) translateY(-8px); } }
 
 /* ── 上传区呼吸动画 ── */
 @keyframes uploadBreathe { 0%,100% { border-color: #e67e22; box-shadow: 0 0 0 0 rgba(230,126,34,0.15); } 50% { border-color: #f0a04b; box-shadow: 0 0 0 8px rgba(230,126,34,0); } }
-.upload-zone.idle { animation: uploadBreathe 3s ease-in-out infinite; }
+.upload-zone.idle { animation: uploadBreathe 3s ease-in-out infinite; position:relative }
+.upload-zone.idle::after{ content:''; position:absolute; right:22px; top:50%; width:28px; height:28px; transform:translateY(-50%); background:radial-gradient(circle,rgba(230,126,34,0.2),transparent 70%); border-radius:50%; animation:uploadPulse 2s ease-in-out infinite }
+@keyframes uploadPulse{ 0%,100%{transform:translateY(-50%) scale(1);opacity:0.5}50%{transform:translateY(-50%) scale(1.6);opacity:0} }
 
 /* ── 筛选标签条 ── */
 .active-filters {
@@ -393,10 +394,34 @@ body {
 }
 /* Page entry */
 @keyframes pageEnter{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:translateY(0); } }
-.container{ animation: pageEnter 0.45s cubic-bezier(0.22,0.1,0.2,1); }
+.main{ animation: pageEnter 0.55s cubic-bezier(0.22,0.1,0.2,1) both; }
+.header{ animation: pageEnter 0.4s cubic-bezier(0.22,0.1,0.2,1) 0.08s both; }
 /* Page exit */
 .page-exit-overlay{ position:fixed; inset:0; z-index:9999; background:var(--bg); opacity:0; pointer-events:none; transition:opacity 0.3s ease; }
 .page-exit-overlay.go{ opacity:1; pointer-events:all; }
+
+/* ── Skeleton shimmer ── */
+@keyframes shimmer{ 0%{opacity:0.4}50%{opacity:0.75}100%{opacity:0.4} }
+.skeleton-shimmer{ animation:shimmer 1.8s ease-in-out infinite; background:linear-gradient(90deg,var(--border) 25%,#e8e0d6 37%,var(--border) 63%); background-size:400% 100%; animation: shimmerSlide 1.8s ease-in-out infinite; }
+@keyframes shimmerSlide{ 0%{background-position:100% 50%}100%{background-position:0 50%} }
+[data-theme="dark"] .skeleton-shimmer{ background-image:linear-gradient(90deg,#1a2740 25%,#1e3050 37%,#1a2740 63%) }
+
+/* ── Tab enter ── */
+.tab-content{ display:none }
+.tab-content.active{ display:block; animation:tabEnter 0.3s ease }
+@keyframes tabEnter{ from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── Filter pulse ── */
+@keyframes filterPulse{ 0%,100%{box-shadow:var(--shadow)}50%{box-shadow:0 0 0 5px rgba(230,126,34,0.1),var(--shadow-lg)} }
+.filter-pulse{ animation:filterPulse 0.5s ease }
+
+/* ── Score reveal ── */
+@keyframes scoreReveal{ from{opacity:0;transform:translateY(-6px);max-height:0} to{opacity:1;transform:translateY(0);max-height:60px} }
+.stat-score-reveal{ animation:scoreReveal 0.35s var(--spring); overflow:hidden }
+
+/* ── Demo CTA ── */
+.demo-cta-btn{ margin-top:16px; animation: ctaFadeIn 0.5s cubic-bezier(0.22,0.1,0.2,1) 0.3s both }
+@keyframes ctaFadeIn{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
 /* ── Atmosphere ── */
 .atmo{position:fixed;inset:0;pointer-events:none;z-index:0}
@@ -407,23 +432,50 @@ body {
 .page-exit-overlay{position:fixed;inset:0;z-index:9999;background:var(--bg);opacity:0;pointer-events:none;transition:opacity 0.3s ease}.page-exit-overlay.go{opacity:1;pointer-events:all}
 
 </style>
+<script id="demoData" type="application/json">[{"d":"外交部","t":"外交业务类（英语）","l":"中央","a":"普通职位","m":"0502外国语言文学","e":"硕士研究生及以上","p":"中共党员","x":"无限制","c":5,"r":"北京"},{"d":"北京市通信管理局","t":"一级主任科员及以下","l":"省（副省）级","a":"普通职位","m":"0809电子科学与技术、0810信息与通信工程","e":"硕士研究生及以上","p":"中共党员","x":"二年","c":1,"r":"北京"},{"d":"公安部","t":"侦查工作一级主任科员及以下","l":"中央","a":"公安机关人民警察职位","m":"0301法学、0306公安学","e":"本科及以上","p":"中共党员","x":"二年","c":3,"r":"北京"},{"d":"国家税务总局北京市税务局","t":"一级行政执法员（一）","l":"县（区）级及以下","a":"普通职位","m":"经济学类、财政学类、金融学类","e":"本科及以上","p":"不限","x":"无限制","c":4,"r":"北京"},{"d":"国家税务总局上海市税务局","t":"一级行政执法员（二）","l":"县（区）级及以下","a":"普通职位","m":"法学类、政治学类、社会学类","e":"本科及以上","p":"不限","x":"无限制","c":3,"r":"上海"},{"d":"国家税务总局广东省税务局","t":"一级行政执法员（三）","l":"县（区）级及以下","a":"普通职位","m":"计算机类、电子信息类","e":"本科及以上","p":"不限","x":"无限制","c":6,"r":"广东"},{"d":"国家税务总局四川省税务局","t":"一级行政执法员","l":"县（区）级及以下","a":"普通职位","m":"工商管理类、公共管理类","e":"本科及以上","p":"不限","x":"无限制","c":2,"r":"四川"},{"d":"青海省邮政管理局","t":"一级主任科员及以下","l":"市（地）级","a":"普通职位","m":"不限","e":"本科及以上","p":"不限","x":"无限制","c":1,"r":"青海"},{"d":"西藏自治区通信管理局","t":"一级主任科员及以下","l":"省（副省）级","a":"普通职位","m":"0809电子科学与技术、0810信息与通信工程","e":"本科及以上","p":"不限","x":"二年","c":1,"r":"西藏"},{"d":"国家税务总局新疆维吾尔自治区税务局","t":"一级行政执法员","l":"县（区）级及以下","a":"普通职位","m":"经济学类、管理学类","e":"本科及以上","p":"不限","x":"无限制","c":3,"r":"新疆"},{"d":"国家税务总局山东省税务局","t":"一级行政执法员（一）","l":"县（区）级及以下","a":"普通职位","m":"财政学类、经济学类","e":"本科及以上","p":"不限","x":"无限制","c":5,"r":"山东"},{"d":"国家税务总局河南省税务局","t":"一级行政执法员","l":"县（区）级及以下","a":"普通职位","m":"法学类、政治学类、马克思主义理论类","e":"本科及以上","p":"不限","x":"无限制","c":4,"r":"河南"},{"d":"国家税务总局云南省税务局","t":"一级行政执法员（二）","l":"县（区）级及以下","a":"普通职位","m":"政治学类、社会学类、民族学类","e":"本科及以上","p":"不限","x":"无限制","c":2,"r":"云南"}]</script>
 </head>
 <body>
 
 <div class="atmo"><div class="orb"></div><div class="orb"></div></div>
 <div class="grid-texture"></div>
 <div class="page-exit-overlay" id="exitOverlay"></div>
-<div class="page-exit-overlay" id="exitOverlay"></div>
-<!-- Loading skeleton — disappears when CDN ready -->
-<div id="appLoader" style="position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity 0.3s">
-<div style="text-align:center">
-<div style="font-size:48px;margin-bottom:12px">🏛️</div>
-<div style="font-size:18px;font-weight:700;margin-bottom:4px">SheetLens</div>
-<div style="font-size:13px;color:var(--muted)">组件加载中…</div>
-<div style="width:120px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;overflow:hidden">
-<div id="loaderBar" style="height:100%;width:0%;background:var(--primary);border-radius:2px;transition:width 0.3s"></div>
-</div>
-</div>
+<!-- Loading skeleton — layout-matched shimmer until CDN ready -->
+<div id="appLoader" style="position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;transition:opacity 0.3s">
+  <!-- Header skeleton -->
+  <div style="background:linear-gradient(135deg,#e67e22 0%,#d35400 50%,#c0392b 100%);padding:24px 32px;height:72px;display:flex;align-items:center;gap:12px">
+    <div style="width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.2)" class="skeleton-shimmer"></div>
+    <div><div style="width:140px;height:17px;border-radius:4px;background:rgba(255,255,255,0.2);margin-bottom:5px" class="skeleton-shimmer"></div><div style="width:90px;height:11px;border-radius:4px;background:rgba(255,255,255,0.15)" class="skeleton-shimmer"></div></div>
+  </div>
+  <!-- Body skeleton -->
+  <div style="flex:1;max-width:1400px;margin:0 auto;padding:24px 28px;width:100%">
+    <div style="height:56px;border-radius:20px;border:2px dashed var(--border);margin-bottom:20px;background:linear-gradient(90deg,#fffbf5 25%,#fff8ed 37%,#fffbf5 63%);background-size:400% 100%" class="skeleton-shimmer"></div>
+    <div style="border-radius:20px;border:1px solid var(--border);padding:24px;margin-bottom:20px;background:var(--card)">
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <div style="width:80px;height:32px;border-radius:20px;background:var(--border)" class="skeleton-shimmer"></div>
+        <div style="width:70px;height:32px;border-radius:20px;background:var(--border)" class="skeleton-shimmer"></div>
+        <div style="width:90px;height:32px;border-radius:20px;background:var(--border)" class="skeleton-shimmer"></div>
+        <div style="width:75px;height:32px;border-radius:20px;background:var(--border)" class="skeleton-shimmer"></div>
+        <div style="width:85px;height:32px;border-radius:20px;background:var(--border)" class="skeleton-shimmer"></div>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:20px">
+        <div style="flex:1;height:46px;border-radius:12px;background:var(--border)" class="skeleton-shimmer"></div>
+        <div style="flex:1;height:46px;border-radius:12px;background:var(--border)" class="skeleton-shimmer"></div>
+        <div style="flex:1;height:46px;border-radius:12px;background:var(--border)" class="skeleton-shimmer"></div>
+        <div style="flex:1;height:46px;border-radius:12px;background:var(--border)" class="skeleton-shimmer"></div>
+        <div style="width:100px;height:46px;border-radius:12px;background:var(--primary);opacity:0.3" class="skeleton-shimmer"></div>
+      </div>
+      <div style="height:200px;border-radius:12px;background:var(--border);display:flex;align-items:center;justify-content:center">
+        <div style="width:60%;height:160px;border-radius:8px;background:linear-gradient(90deg,#e8e0d6 25%,#f0ebe0 37%,#e8e0d6 63%);background-size:400% 100%" class="skeleton-shimmer"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Progress bar -->
+  <div style="position:fixed;bottom:32px;left:50%;transform:translateX(-50%);text-align:center;z-index:10000">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:6px">组件加载中…</div>
+    <div style="width:100px;height:3px;background:var(--border);border-radius:2px;margin:0 auto;overflow:hidden">
+      <div id="loaderBar" style="height:100%;width:0%;background:var(--primary);border-radius:2px;transition:width 0.3s"></div>
+    </div>
+  </div>
 </div>
 
 <div class="header">
@@ -448,6 +500,10 @@ body {
     <div class="upload-hint">支持 .xlsx / .xls | 国考29列 & 省考格式 | 多文件合并</div>
   </div>
   <input type="file" id="fileInput" accept=".xlsx,.xls" multiple>
+</div>
+<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px">
+  <button class="btn btn-success" id="btnDemo" style="font-size:14px">🎯 试玩示例数据</button>
+  <span style="font-size:12px;color:var(--muted)">内置 13 个岗位 · 覆盖 9 省 · 无需上传即时体验</span>
 </div>
 
 <!-- 筛选 & 匹配面板（填写即筛，填写即评分） -->
@@ -546,11 +602,11 @@ body {
 <div class="content-card card" style="border-radius:0 0 var(--radius) var(--radius);margin-bottom:24px">
   <div class="tab-content active" id="tab-map">
     <div class="chart-box" id="chartMap">
-      <div class="empty-state"><div class="empty-icon">🗺️</div><div class="empty-title">拖拽 Excel 开始分析</div><div class="empty-desc">上传职位表后自动生成各省岗位热力图<br>点击省份可直接筛选</div></div>
+      <div class="empty-state"><div class="empty-icon">🗺️</div><div class="empty-title">开始分析公考岗位</div><div class="empty-desc">上传职位表或试玩示例数据<br>自动生成各省岗位热力图 · 点击省份可直接筛选</div><button class="btn btn-success btn-sm demo-cta-btn" id="demoBtnMap">🎯 试玩示例数据</button></div>
     </div>
   </div>
   <div class="tab-content" id="tab-trend">
-    <div class="empty-state" id="trendEmpty"><div class="empty-icon">📊</div><div class="empty-title">上传数据后自动生成 7 维分析</div><div class="empty-desc">省份排名 · 机构层级 · 学历分布 · 政治面貌<br>职位属性 · 招录部门 · 经验要求</div></div>
+    <div class="empty-state" id="trendEmpty"><div class="empty-icon">📊</div><div class="empty-title">上传数据后自动生成 7 维分析</div><div class="empty-desc">省份排名 · 机构层级 · 学历分布 · 政治面貌<br>职位属性 · 招录部门 · 经验要求</div><button class="btn btn-success btn-sm demo-cta-btn" id="demoBtnTrend">🎯 试玩示例数据</button></div>
     <div id="trendCharts" style="display:none">
       <div class="chart-row"><div class="chart-half" id="chartBar1"></div><div class="chart-half" id="chartPie1"></div></div>
       <div class="chart-row-3"><div class="chart-third" id="chartPie2"></div><div class="chart-third" id="chartPie3"></div><div class="chart-third" id="chartPie4"></div></div>
@@ -558,7 +614,7 @@ body {
     </div>
   </div>
   <div class="tab-content" id="tab-table">
-    <div class="empty-state" id="tableEmpty"><div class="empty-icon">📋</div><div class="empty-title">岗位列表将显示在这里</div><div class="empty-desc">上传 Excel 后可查看、排序、导出筛选结果</div></div>
+    <div class="empty-state" id="tableEmpty"><div class="empty-icon">📋</div><div class="empty-title">岗位列表将显示在这里</div><div class="empty-desc">上传 Excel 或试玩示例数据<br>可查看、排序、导出筛选结果</div><button class="btn btn-success btn-sm demo-cta-btn" id="demoBtnTable">🎯 试玩示例数据</button></div>
     <div id="tableContent" style="display:none">
       <div style="margin-bottom:14px;display:flex;gap:8px;align-items:center">
         <span id="tableInfo" style="font-size:13px;color:var(--muted)"></span>
@@ -706,6 +762,40 @@ const STATE = {
   page: 1, pageSize: 50, filterHistory: [], compareSet: []
 };
 
+// ── Demo data loader ──
+let DEMO_DATA = null;
+function loadDemoData() {
+  if (DEMO_DATA === null) {
+    try {
+      let el = document.getElementById('demoData');
+      if (el && el.textContent.trim()) DEMO_DATA = JSON.parse(el.textContent.trim());
+    } catch(e) { console.error('Demo parse error', e); }
+  }
+  if (!DEMO_DATA || !DEMO_DATA.length) {
+    toast('示例数据不可用，请上传 Excel 文件', 'warn');
+    return;
+  }
+  let overlay = document.createElement('div');
+  overlay.id = 'demoLoading';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9998;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;opacity:0;transition:opacity 0.35s ease';
+  overlay.innerHTML = '<div style="font-size:56px;margin-bottom:12px">🏛️</div><div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">正在加载示例数据…</div><div style="font-size:12px;color:var(--muted);margin-bottom:16px">13 个岗位 · 覆盖 9 省</div><div style="width:140px;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div id="demoLoaderBar" style="height:100%;width:0;background:var(--primary);border-radius:2px;transition:width 0.5s var(--spring)"></div></div>';
+  document.body.appendChild(overlay);
+  requestAnimationFrame(function() {
+    overlay.style.opacity = '1';
+    var bar = document.getElementById('demoLoaderBar');
+    if (bar) requestAnimationFrame(function() { bar.style.width = '70%'; });
+    setTimeout(function() {
+      if (bar) bar.style.width = '100%';
+      setTimeout(function() {
+        finishUpload(DEMO_DATA.slice());
+        toast('示例数据已加载 · 共 ' + formatNum(DEMO_DATA.length) + ' 个岗位 · 覆盖 ' + formatNum(Object.keys(STATE.provinceStats).length) + ' 省', 'success');
+        overlay.style.opacity = '0';
+        setTimeout(function() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 400);
+      }, 180);
+    }, 450);
+  });
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  FILTER
 // ═══════════════════════════════════════════════════════════════
@@ -837,7 +927,7 @@ function computeScoreStats(f){let hasProfile=STATE.filters.major||STATE.filters.
 function recompute(){STATE.filtered=applyFilters(STATE.raw,STATE.filters);scoreIfNeeded();STATE.analytics=buildAnalytics(STATE.filtered);}
 function scoreIfNeeded(){let hasProfile=STATE.filters.major||STATE.filters.edu||STATE.filters.party||STATE.filters.exp;if(hasProfile){let p={enabled:true,major:STATE.filters.major,edu:STATE.filters.edu,party:STATE.filters.party,exp:STATE.filters.exp,province:STATE.filters.province};STATE.filtered=scoreAll(STATE.filtered,p);}}
 function dataChanged(){rebuildProvinceStats();rebuildDropdown();STATE.meta.totalPositions=STATE.raw.length;STATE.meta.totalProvinces=Object.keys(STATE.provinceStats).length;updateStatsUI();renderAll();}
-function filterChanged(){recompute();updateStatsUI();renderAll();}
+function filterChanged(){recompute();updateStatsUI();renderAll();var cc=document.querySelector('.content-card');if(cc){cc.classList.remove('filter-pulse');void cc.offsetWidth;cc.classList.add('filter-pulse');setTimeout(function(){cc.classList.remove('filter-pulse')},600)}}
 function rebuildDropdown(){let sel=document.getElementById("selProvince");sel.innerHTML='<option value="">全部省份</option>';Object.keys(STATE.provinceStats).sort().forEach(function(p){let o=document.createElement("option");o.value=p;o.textContent=p+" ("+STATE.provinceStats[p].total+"岗)";sel.appendChild(o);});}
 function updateStatsUI(){
   let f=STATE.filtered,st=computeStats(f);
@@ -852,11 +942,12 @@ function updateStatsUI(){
   let si=document.getElementById("statScoreItem");
   let hasProfile=STATE.filters.major||STATE.filters.edu||STATE.filters.party||STATE.filters.exp;
   let ss=hasProfile?computeScoreStats(f):null;
-  if(ss){si.style.display="flex";document.getElementById("statScore").textContent=ss.avg+"分";
-    let bar=document.getElementById("scoreBar");bar.style.display="flex";
+  let bar=document.getElementById("scoreBar");
+  if(ss){si.style.display="flex";requestAnimationFrame(function(){si.classList.add('stat-score-reveal')});document.getElementById("statScore").textContent=ss.avg+"分";
+    bar.style.display="flex";requestAnimationFrame(function(){bar.classList.add('stat-score-reveal')});
     document.getElementById("scoreBarInner").innerHTML='<span class="score-bar-item"><span class="n green">'+ss.dist["强烈推荐"]+'</span> <span class="l">强烈推荐</span></span> <span class="score-bar-item"><span class="n blue">'+ss.dist["推荐"]+'</span> <span class="l">推荐</span></span> <span class="score-bar-item"><span class="n orange">'+ss.dist["可考虑"]+'</span> <span class="l">可考虑</span></span> <span class="score-bar-item"><span class="n red">'+ss.dist["竞争激烈"]+'</span> <span class="l">竞争激烈</span></span>';
-  }else{si.style.display="none";
-    let bar=document.getElementById("scoreBar");bar.style.display="none";
+  }else{si.classList.remove('stat-score-reveal');si.style.display="none";
+    bar.classList.remove('stat-score-reveal');bar.style.display="none";
   }
 }
 // 数字滚动核心（支持后缀单位如「人」）
@@ -1136,6 +1227,10 @@ function init(){
   document.getElementById("btnClearFilters").addEventListener("click",handleFilterReset);
   document.getElementById("btnUndo").addEventListener("click",undoFilter);
   document.getElementById("btnCompare").addEventListener("click",openCompare);
+  // ── Demo buttons ──
+  var btnDemo = document.getElementById("btnDemo");
+  if (btnDemo) btnDemo.addEventListener("click", loadDemoData);
+  document.querySelectorAll(".demo-cta-btn").forEach(function(b) { b.addEventListener("click", loadDemoData); });
   // ── 分页 ──
   document.getElementById("btnPagePrev").addEventListener("click",function(){goPage(-1);});
   document.getElementById("btnPageNext").addEventListener("click",function(){goPage(1);});
