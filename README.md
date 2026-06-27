@@ -1,7 +1,7 @@
 # SheetLens — 智能公考岗位筛选
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.4.0-brightgreen)](https://github.com/kaXianc2-gom/sheet-lens/releases)
+[![Version](https://img.shields.io/badge/version-1.5.0-brightgreen)](https://github.com/kaXianc2-gom/sheet-lens/releases)
 [![Pages](https://img.shields.io/badge/demo-online-0078D4)](https://kaXianc2-gom.github.io/sheet-lens/)
 
 单文件 HTML 工具，84KB，双击即用。拖拽上传国考/省考职位表，自动解析、筛选、评分、可视化、对比、导出。
