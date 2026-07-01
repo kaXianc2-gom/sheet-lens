@@ -1104,8 +1104,8 @@ function themeLabelC(){return document.documentElement.getAttribute("data-theme"
 //  MAP
 // ═══════════════════════════════════════════════════════════════
 let mapChart=null,chinaGeoLoaded=false;
-function loadChinaGeo(){let _g=localStorage.getItem('gwy_sheetlens_geojson') || localStorage.getItem('sheetlens_geojson');if(_g){try{echarts.registerMap('china',JSON.parse(_g));chinaGeoLoaded=true;return Promise.resolve();}catch(e){localStorage.removeItem('gwy_sheetlens_geojson');}}return fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json').then(function(r){return r.json();}).then(function(geo){try{localStorage.setItem('gwy_sheetlens_geojson',JSON.stringify(geo));}catch(e){}echarts.registerMap('china',geo);chinaGeoLoaded=true;});}
-function destroyMapChart(){if(mapChart&&!mapChart.isDisposed()){mapChart.dispose();mapChart=null;}chinaGeoLoaded=false;}
+function loadChinaGeo(){if(typeof CHINA_GEOJSON!=="undefined"){try{echarts.registerMap('china',CHINA_GEOJSON);chinaGeoLoaded=true;return Promise.resolve();}catch(e){console.warn("Inline GeoJSON failed, trying cache/CDN");}}let _g=localStorage.getItem('gwy_sheetlens_geojson') || localStorage.getItem('sheetlens_geojson');if(_g){try{echarts.registerMap('china',JSON.parse(_g));chinaGeoLoaded=true;return Promise.resolve();}catch(e){localStorage.removeItem('gwy_sheetlens_geojson');}}return fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json').then(function(r){return r.json();}).then(function(geo){try{localStorage.setItem('gwy_sheetlens_geojson',JSON.stringify(geo));}catch(e){}echarts.registerMap('china',geo);chinaGeoLoaded=true;});}
+function destroyMapChart(){if(mapChart&&!mapChart.isDisposed()){mapChart.dispose();mapChart=null;}}
 function renderMap(){
   let el=document.getElementById("chartMap");if(!el)return;
   if(!echartsReady())return;
@@ -1114,13 +1114,14 @@ function renderMap(){
     el.innerHTML='<div class="empty-state" style="padding:60px 20px"><div class="empty-icon">🗺️</div><div class="empty-title">加载数据后显示地图</div><div class="empty-desc">上传职位表或点击下方按钮加载示例数据</div><button class="btn btn-success btn-sm demo-cta-btn" onclick="loadDemoData()" style="margin-top:16px">🎯 试玩示例数据</button></div>';
     return;
   }
-  if(!mapChart||mapChart.isDisposed())mapChart=echarts.init(el);
+  if(!mapChart||mapChart.isDisposed()){if(el.children.length&&!el.querySelector("canvas"))el.innerHTML="";mapChart=echarts.init(el);}
   let provDist=getProvinceDistribution();
   let mapData=Object.keys(provDist).map(function(s){let d=provDist[s];return{name:d.name,value:d.filtered,total:d.total,majorMatch:d.majorMatch,majorLabel:d.majorLabel,shortName:d.shortName};});
   let maxVal=Math.max.apply(null,mapData.map(function(d){return d.value;}).concat([1]));
   let tc=themeTC(),opt={title:{text:"各省岗位分布（点击省份筛选）",left:"center",top:8,textStyle:{fontSize:16,color:tc}},tooltip:{trigger:"item",formatter:function(p){if(!p.data||!p.data.total)return(p.name||"")+"<br/>暂无数据";let tip="<b>"+(p.data.shortName||p.name)+"</b><br/>当前筛选: "+(p.data.value||0)+" 岗<br/>全省总数: "+p.data.total+" 岗";if(p.data.majorLabel)tip+="<br/>「"+p.data.majorLabel+"」相关: "+p.data.majorMatch+" 岗";return tip;}},visualMap:{min:0,max:maxVal,text:["多","少"],inRange:{color:["#fef5e7","#fad7a0","#f0a04b","#e67e22","#c0392b"]},calculable:true,left:20,bottom:20},series:[{type:"map",map:"china",roam:true,zoom:1.15,top:30,label:{show:true,fontSize:10,color:themeLabelC()},emphasis:{label:{show:true,fontSize:14,fontWeight:"bold"}},data:mapData}]};
-  if(!chinaGeoLoaded){mapChart.showLoading({text:"加载地图数据..."});loadChinaGeo().then(function(){mapChart.hideLoading();mapChart.setOption(opt);}).catch(function(){mapChart.hideLoading();mapChart.setOption({title:{text:"地图加载失败，请检查网络连接",left:"center",top:"center",textStyle:{color:"#999",fontSize:16}}});});return;}
-  mapChart.setOption(opt);mapChart.off("click");mapChart.on("click",function(p){if(p.data&&p.data.shortName){document.getElementById("selProvince").value=p.data.shortName;handleFilterApply();switchTab("table");}});
+  function applyMapOption(opt){mapChart.setOption(opt);mapChart.off("click");mapChart.on("click",function(p){if(p.data&&p.data.shortName){document.getElementById("selProvince").value=p.data.shortName;handleFilterApply();switchTab("table");}});}
+  if(!chinaGeoLoaded){mapChart.showLoading({text:"加载地图数据..."});loadChinaGeo().then(function(){mapChart.hideLoading();applyMapOption(opt);}).catch(function(){mapChart.hideLoading();mapChart.setOption({title:{text:"地图加载失败，请检查网络连接",left:"center",top:"center",textStyle:{color:"#999",fontSize:16}}});});return;}
+  applyMapOption(opt);
 }
 window.addEventListener("resize",function(){if(mapChart&&!mapChart.isDisposed()&&document.getElementById("tab-map")&&document.getElementById("tab-map").classList.contains("active"))mapChart.resize();});
 
@@ -1167,7 +1168,7 @@ window.addEventListener("resize",function(){if(!document.getElementById("tab-tre
 // ═══════════════════════════════════════════════════════════════
 let currentTab="map";
 function switchTab(tab){currentTab=tab;document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");if(b.getAttribute("data-tab")===tab)b.classList.add("active");});document.querySelectorAll(".tab-content").forEach(function(c){c.classList.remove("active");});let el=document.getElementById("tab-"+tab);if(el)el.classList.add("active");onTabChanged(tab);}
-function onTabChanged(tab){if(tab==="trend")setTimeout(function(){if(STATE.raw.length)renderTrend();},200);if(tab==="map")setTimeout(function(){if(echartsReady()&&mapChart&&!mapChart.isDisposed())mapChart.resize();},200);}
+function onTabChanged(tab){if(tab==="trend")setTimeout(function(){if(STATE.raw.length)renderTrend();},200);if(tab==="map")setTimeout(function(){if(STATE.raw.length)renderMap();else if(echartsReady()&&mapChart&&!mapChart.isDisposed())mapChart.resize();},200);}
 function renderAll(){if(currentTab==="map")renderMap();else if(currentTab==="trend"&&STATE.raw.length)renderTrend();else if(currentTab==="table")renderTable();}
 
 // 标签
