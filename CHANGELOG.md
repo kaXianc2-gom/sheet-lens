@@ -1,5 +1,34 @@
 # Changelog
 
+## [2.1.0] - 2026-07-08
+
+### 重构
+- 单文件 2.6MB → 拆为多文件工程（HTML / CSS / JS / vendor / data）
+- index.html 瘦身 2.34MB → 24KB
+- vendor 库本地内联：ECharts / SheetJS / DataV GeoJSON
+- 60+ CSS 设计 token（颜色 / 间距 / 字号 / 动效 / 层级）
+- ECharts `var()` 渲染失败 bug 修复（`cssv()` helper）
+
+### 修复
+- race bug：`chinaGeoLoaded` TDZ + `mapChart` 异步守卫
+- `file://` 协议 fetch 受限（用 `.js` wrapper 解决）
+
+### 新增
+- 暗色 mode 自发光 / 暖色光晕 / 星空感光斑 / 金色金属边光
+- 亮色 mode 对称暗色视觉增强
+- 响应式 3 断点（1024 / 768 / 480）
+- 键盘快捷键（`/` 搜索 / `1/2/3` 切 tab / `Ctrl+Z` 撤销 / `Ctrl+E` 导出 / `T` 切主题 / `?` 帮助）
+- 分享 URL（filter 序列化到 hash，可分享可恢复）
+- Loading skeleton（30+ 行时显示）
+- PDF 导出（`window.print` + `@media print` 增强）
+- Ripple 波纹（按钮点击反馈）
+- 快捷键 onboarding 第 5 步
+
+### 测试
+- 6 个 Playwright E2E 测试
+- demo 加载 / 3 tab 切换 / 省份点击 / 筛选撤销 / 暗色 / 对比
+- 6/6 通过，0 PAGE-ERR
+
 ## [2.0.0] - 2026-06-30
 
 ### Added

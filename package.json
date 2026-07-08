@@ -1,5 +1,14 @@
 {
+  "name": "sheet-lens",
+  "version": "2.1.0",
+  "description": "公考岗位筛选工具 — 零网络请求、零构建、双击即用",
+  "license": "MIT",
+  "repository": "https://github.com/kaXianc2-gom/sheet-lens",
   "devDependencies": {
     "@playwright/test": "^1.61.1"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:update": "playwright test --update-snapshots"
   }
 }
