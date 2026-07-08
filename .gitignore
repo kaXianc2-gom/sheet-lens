@@ -30,3 +30,7 @@ desktop.ini
 *.xlsx
 *.xls
 !examples/sample_data.xlsx
+
+shot-*.js
+test-results/
+playwright-report/

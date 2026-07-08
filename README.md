@@ -1,10 +1,48 @@
 # SheetLens — 智能公考岗位筛选
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.5.0-brightgreen)](https://github.com/kaXianc2-gom/sheet-lens/releases)
+[![Version](https://img.shields.io/badge/version-2.0.0-brightgreen)](https://github.com/kaXianc2-gom/sheet-lens/releases)
 [![Pages](https://img.shields.io/badge/demo-online-0078D4)](https://kaXianc2-gom.github.io/sheet-lens/)
 
-单文件 HTML 工具，84KB，双击即用。拖拽上传国考/省考职位表，自动解析、筛选、评分、可视化、对比、导出。
+公考岗位筛选工具，多文件项目，双击 `index.html` 即可使用，**零网络请求、零构建、零安装**。拖拽上传国考/省考职位表，自动解析、筛选、评分、可视化、对比、导出。
+
+## 项目结构
+
+```
+sheet-lens/
+├── index.html              骨架（HTML + 22 个 SVG 图标库 + 引用）
+├── styles.css              设计系统（28KB token 化 CSS）
+├── app.js                  主业务 JS（63KB）
+├── vendor/
+│   ├── echarts.min.js      ECharts 5.5（1MB，CDN 备份）
+│   ├── xlsx.full.min.js    SheetJS 0.18.5（640KB）
+│   ├── china.geo.js        中国地图 GeoJSON（582KB，CDN 备份）
+│   └── china.geo.json      同上原始 JSON（开发参考）
+├── data/
+│   ├── demo.json           13 条脱敏示例数据（开发参考）
+│   └── demo.js             同上 .js wrapper（浏览器加载）
+├── tests/                  Playwright E2E 测试（6 个）
+├── playwright.config.js    Playwright 配置
+├── package.json            dev 依赖：@playwright/test
+├── build_data.py           离线数据预处理（生成 data/demo.json）
+└── CHANGELOG.md / CONTRIBUTING.md / README.md / LICENSE
+```
+
+> **单文件版**：如需"双击即用、无项目结构"版本，可运行 `bash build-bundled.sh`（TODO）把 vendor/ 内联回 index.html，恢复 2.6MB 单文件。
+
+## 体积（拆分后）
+
+| 文件 | 体积 |
+|---|---|
+| index.html | **24KB**（原 2.37MB） |
+| styles.css | 28KB |
+| app.js | 63KB |
+| vendor/echarts.min.js | 1MB |
+| vendor/xlsx.full.min.js | 640KB |
+| vendor/china.geo.js | 582KB |
+| data/demo.js | 3KB |
+| **最大单文件** | **1MB**（ECharts，< 之前 2.37MB 一半） |
+| **总** | ~2.3MB |
 
 ## 截图
 
@@ -65,10 +103,21 @@
 
 ## 使用方式
 
-1. 下载 `index.html`
-2. 双击在浏览器中打开
+1. 下载整个 `sheet-lens/` 目录
+2. 双击 `index.html` 在浏览器打开（**所有依赖在本地**，不联网）
 3. 拖拽 Excel 文件到上传区（或先用 `examples/sample_data.xlsx` 体验）
 4. 输入专业、学历等信息，自动筛选和评分
+
+### 本地开发
+
+```bash
+git clone https://github.com/kaXianc2-gom/sheet-lens.git
+cd sheet-lens
+# 双击 index.html 即可，无需 npm install
+# 仅 E2E 测试需要：
+npm install
+npx playwright test
+```
 
 ## 兼容性
 
@@ -94,11 +143,24 @@
 
 ## 技术架构
 
-- 纯 HTML + 原生 JS，零构建工具，零服务器
-- SheetJS 内联（Excel 解析，离线可用）
-- ECharts 内联（图表渲染，离线可用）
-- 中国地图：DataV GeoJSON 内联
+- **多文件** 静态项目：HTML + CSS + JS 拆分（index.html + styles.css + app.js + vendor/ + data/）
+- **零构建工具**（无 webpack / vite / npm run dev）
+- **零服务器**（双击 index.html 即可）
+- **零网络请求**（ECharts / SheetJS / GeoJSON / demo data 全部本地）
 - 数据完全本地处理，不上传服务器
+
+## 开发命令
+
+```bash
+# 跑 E2E 测试
+npx playwright test
+
+# 跑测试 + 截图
+npx playwright test --update-snapshots
+
+# 看 ECharts 控制台
+# 打开 index.html 后按 F12，console 里看日志
+```
 
 ## AI 辅助声明
 

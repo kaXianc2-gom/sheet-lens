@@ -33,9 +33,25 @@ cd sheet-lens
 `examples/sample_data.xlsx` 提供了脱敏样例，也可使用国考/省考公开职位表。
 
 ## 技术栈
-- 纯 HTML + 原生 JavaScript
-- CDN：ECharts 5.5（图表）+ SheetJS 0.18.5（Excel 解析）
-- 零构建工具，零服务器
+- 纯 HTML + 原生 JavaScript（**单文件，零构建、零服务器、零外部 CDN 请求**）
+- ECharts 5.5（图表，已内联）
+- SheetJS 0.18.5（Excel 解析，已内联）
+- 中国地图：DataV GeoJSON 已内联
+- 仅在地图 GeoJSON 失败时回退到 CDN：`geo.datav.aliyun.com`
+
+### `build_data.py` 说明
+
+`build_data.py` 是 **离线数据预处理工具**（不参与页面运行），用于把 2025 年国考 Excel 原始数据预处理成 `data.json` / `data.js` 嵌入单文件。
+
+- **前提**：需要在仓库本地放 `2025_国考_XX.xlsx` 等原始文件（**当前仓库未包含**，因体积较大）
+- **运行**：`pip install openpyxl && python build_data.py`
+- **输出**：`data.json`（紧凑）、`data_pretty.json`（格式化）、`data.js`（JS 变量赋值）
+- **页面默认使用**：`index.html` 里 `<script id="demoData" type="application/json">` 内嵌的 13 条脱敏示例（公开版），无需运行 `build_data.py` 就能开箱即用
+- **正式数据**：`build_data.py` 适合在私有 fork 上把内部数据脱敏后嵌入到 `demoData` 脚本块
+
+## AI 辅助声明
+本项目开发过程中使用了 AI 辅助（Claude / Anthropic Claude Code；Mavis/mavis）。
+如果你也使用 AI 参与了贡献，请在 PR 描述中注明。
 
 ## AI 辅助声明
 本项目开发过程中使用了 AI 辅助。如果你也使用 AI 参与了贡献，请在 PR 描述中注明。
