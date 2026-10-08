@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>SheetLens — 智能公考岗位筛选</title>
+<title>SheetLens v2.5 — 智能公考岗位筛选与六维深度对比</title>
 <!-- CDN preconnect: saves ~300ms on first load -->
 <link rel="dns-prefetch" href="https://cdn.bootcdn.net">
 <link rel="preconnect" href="https://cdn.bootcdn.net" crossorigin>
@@ -65,6 +65,101 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+}
+
+
+/* ═══════════════════════════════════════════
+   v2.5 UPGRADE — 六维雷达对比 & 收藏候选池
+   ═══════════════════════════════════════════ */
+.modal-card.compare-modal {
+  max-width: 980px; width: 94vw; max-height: 90vh;
+}
+.cmp-container {
+  display: flex; flex-direction: column; gap: 20px;
+}
+.cmp-top-grid {
+  display: grid; grid-template-columns: 1.25fr 1fr; gap: 20px; align-items: start;
+}
+@media (max-width: 800px) {
+  .cmp-top-grid { grid-template-columns: 1fr; }
+}
+.radar-box {
+  width: 100%; height: 380px; background: var(--bg);
+  border-radius: var(--radius-sm); border: 1px solid var(--border);
+  position: relative;
+}
+.chart-toggle-row {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+}
+.chart-toggle-btn {
+  padding: 5px 14px; font-size: 12px; font-weight: 600; border-radius: 14px;
+  border: 1px solid var(--border); background: var(--card); color: var(--muted);
+  cursor: pointer; transition: all var(--transition);
+}
+.chart-toggle-btn.active {
+  background: var(--primary); color: #fff; border-color: var(--primary);
+}
+.weights-panel {
+  background: var(--bg); border-radius: var(--radius-sm);
+  border: 1px solid var(--border); padding: 16px 20px;
+}
+.weights-title {
+  font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.weight-slider-row {
+  margin-bottom: 12px; font-size: 12px;
+}
+.weight-label-row {
+  display: flex; justify-content: space-between; margin-bottom: 4px; color: var(--text);
+}
+.weight-slider-input {
+  width: 100%; accent-color: var(--primary); cursor: pointer; height: 6px;
+}
+.cmp-table {
+  width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px;
+}
+.cmp-table th {
+  background: var(--accent-light); padding: 10px 14px; font-weight: 700;
+  text-align: left; border-bottom: 2px solid var(--border);
+}
+.cmp-table td {
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+}
+.winner-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 10px;
+  font-size: 11px; font-weight: 700; border: 1px solid #fde68a;
+}
+[data-theme="dark"] .winner-pill {
+  background: #78350f; color: #fef3c7; border-color: #b45309;
+}
+.champion-banner {
+  padding: 12px 18px; border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(230,126,34,0.15));
+  border: 1px solid rgba(245,158,11,0.3);
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px; font-size: 13px;
+}
+.star-btn {
+  background: none; border: none; font-size: 16px; cursor: pointer;
+  color: #cbd5e1; transition: transform var(--transition), color var(--transition);
+  padding: 0 4px; line-height: 1;
+}
+.star-btn:hover { transform: scale(1.25); color: #f59e0b; }
+.star-btn.starred { color: #f59e0b; text-shadow: 0 0 8px rgba(245,158,11,0.5); }
+.btn-fav-filter.active {
+  background: #f59e0b !important; color: #fff !important; border-color: #f59e0b !important;
+}
+.demo-badge-btn {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 14px;
+  padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600;
+  background: var(--card); color: var(--primary); border: 1.5px solid var(--primary);
+  cursor: pointer; transition: all var(--transition); box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.demo-badge-btn:hover {
+  background: var(--primary); color: #fff; transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(230,126,34,0.3);
 }
 
 /* ── 头部 ── */
@@ -401,6 +496,7 @@ body {
 <div style="font-size:48px;margin-bottom:12px">🏛️</div>
 <div style="font-size:18px;font-weight:700;margin-bottom:4px">SheetLens</div>
 <div style="font-size:13px;color:var(--muted)">组件加载中…</div>
+<div id="loaderMsg" style="font-size:12px;color:var(--muted);margin-top:8px">正在加载组件...</div>
 <div style="width:120px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;overflow:hidden">
 <div id="loaderBar" style="height:100%;width:0%;background:var(--primary);border-radius:2px;transition:width 0.3s"></div>
 </div>
@@ -417,6 +513,7 @@ body {
   </div>
   <span class="data-badge" id="dataBadge">📂 请上传数据</span>
   <button class="theme-toggle" id="themeToggle" title="切换暗色/亮色模式">🌙</button>
+  <a href="gwy-launchpad.html" class="back-to-hub" style="margin-left:8px;font-size:12px;background:rgba(255,255,255,0.15);padding:4px 10px;border-radius:12px;color:#fff;text-decoration:none;white-space:nowrap">← 工具箱</a>
 </div>
 
 <div class="main">
@@ -545,13 +642,14 @@ body {
         <span id="tableInfo" style="font-size:13px;color:var(--muted)"></span>
         <div style="flex:1"></div>
         <span id="scoreSummary" style="font-size:12px;color:var(--muted);margin-right:8px"></span>
+        <button class="btn btn-outline btn-sm btn-fav-filter" id="btnFavFilter" title="仅查看收藏的候选岗位">⭐ 候选清单 (<span id="favCount">0</span>)</button>
         <button class="btn btn-outline btn-sm" id="btnCompare" disabled>⚖ 对比选中</button>
         <button class="btn btn-success btn-sm" id="btnExport">📥 导出 CSV</button>
       </div>
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th style="width:32px;text-align:center"><input type="checkbox" id="cbSelectAll" title="全选/取消"></th>
+            <th style="width:32px;text-align:center"><input type="checkbox" id="cbSelectAll" title="全选/取消"></th><th style="width:32px;text-align:center" title="收藏">⭐</th>
             <th data-sort="_score" id="thScore" style="display:none">⭐评分</th>
             <th data-sort="d">部门</th><th data-sort="t">职位名称</th>
             <th data-sort="l">机构层级</th><th data-sort="e">学历要求</th>
@@ -587,14 +685,97 @@ body {
   SheetLens · 数据不上传服务器，全部本地计算 · <span id="chartStatus">等待数据...</span>
 </div>
 
-<script src="https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
 
+
+
+<script>
+// Multi-CDN loading: try bootcdn, fallback to cdnjs
+(function loadLibs(){
+  var libs = [
+    { name:'XLSX', url:'https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+      fallback:'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js' },
+    { name:'echarts', url:'https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js',
+      fallback:'https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js' }
+  ];
+  function loadScript(src, onLoad, onError){
+    var s=document.createElement('script');s.src=src;
+    s.onload=onLoad;s.onerror=onError;
+    document.head.appendChild(s);
+  }
+  function tryLoad(lib, useFallback){
+    loadScript(useFallback ? lib.fallback : lib.url,
+      function(){ console.log(lib.name+' loaded from '+(useFallback?'fallback':'primary')+' CDN'); },
+      function(){
+        if(!useFallback) tryLoad(lib, true);
+        else console.warn(lib.name+' failed to load from both CDNs');
+      }
+    );
+  }
+  libs.forEach(function(l){ tryLoad(l, false); });
+})();
+</script>
 <script>
 // ═══════════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+//  v2.5 EXTENDED CONSTANTS & TAXONOMY
+// ═══════════════════════════════════════════════
+const CITY_TIERS = {
+  '北京':1,'上海':1,'广州':1,'深圳':1,
+  '成都':2,'杭州':2,'重庆':2,'武汉':2,'西安':2,'苏州':2,'天津':2,'南京':2,'郑州':2,'长沙':2,'东莞':2,'青岛':2,'沈阳':2,'宁波':2,'昆明':2,'合肥':2,'佛山':2,'无锡':2,'福州':2,'厦门':2,'济南':2,'大连':2,'哈尔滨':2,'温州':2,'石家庄':2,'长春':2,'泉州':2,'南宁':2,'贵阳':2,'南昌':2,'太原':2,'烟台':2,'嘉兴':2,'兰州':2,'乌鲁木齐':2,'呼和浩特':2,'海口':2,'银川':2,'西宁':2,'拉萨':2
+};
+const CITY_NAMES_SORTED = Object.keys(CITY_TIERS).sort((a,b) => b.length - a.length);
+
+const MAJOR_TAXONOMY = {
+  '计算机类': ['计算机','软件工程','网络工程','信息安全','数字媒体技术','物联网工程','数据科学','大数据','智能科学','人工智能'],
+  '法学类': ['法学','知识产权','监狱学','国际法','公安学','侦查学','社会学'],
+  '中国语言文学类': ['汉语言文学','汉语言','汉语国际教育','秘书学','文秘','应用语言学','古典文献学'],
+  '经济学类': ['经济学','金融学','财政学','国际经济与贸易','税收学','金融工程','保险学','国民经济管理'],
+  '工商管理类': ['工商管理','会计学','财务管理','审计学','人力资源管理','市场营销','物流管理','资产评估'],
+  '公共管理类': ['行政管理','公共事业管理','劳动与社会保障','土地资源管理','城市管理'],
+  '新闻传播学类': ['新闻学','广播电视学','广告学','传播学','网络与新媒体','编辑出版学']
+};
+
+const WEIGHT_LABELS = {
+  count:     '招录规模',
+  tier:      '城市区位',
+  level:     '机构层级',
+  education: '学历优势',
+  spec:      '专业契合',
+  location:  '竞争避险'
+};
+
+const DEMO_DATA_2026 = [
+  {d:"中共中央办公厅",t:"综合调研处一级主任科员及以下",l:"中央",a:"普通职位",m:"汉语言文学、哲学、法学",e:"硕士及以上",p:"中共党员",x:"二年及以上",c:2,r:"北京",notes:"中央机关重点核心岗位"},
+  {d:"国家税务总局北京市税务局",t:"海淀区第一税务所一级行政执法员",l:"县级",a:"普通职位",m:"计算机类、软件工程",e:"本科及以上",p:"不限",x:"无限制",c:5,r:"北京",notes:"重点税源管理与信息化支撑"},
+  {d:"国家税务总局广东省税务局",t:"广州市天河区税务局一级行政执法员",l:"县级",a:"普通职位",m:"经济学类、金融学、财政学",e:"本科及以上",p:"不限",x:"无限制",c:6,r:"广东",notes:"天河CBD涉税综合服务"},
+  {d:"中华人民共和国深圳海关",t:"皇岗海关监管一级行政执法员",l:"县级",a:"行政执法类",m:"专业不限",e:"本科及以上",p:"不限",x:"无限制",c:8,r:"广东",notes:"口岸旅检一线监管，轮班制"},
+  {d:"公安部长江航运公安局",t:"武汉分局基层派出所民警",l:"市级",a:"执法类",m:"公安学类、法学",e:"本科及以上",p:"不限",x:"无限制",c:3,r:"湖北",notes:"水上执法执勤"},
+  {d:"生态环境部华东督察局",t:"督察一处一级主任科员及以下",l:"省级",a:"普通职位",m:"环境工程、化学工程、法学",e:"硕士及以上",p:"中共党员",x:"二年及以上",c:2,r:"上海",notes:"生态环保专项督察"},
+  {d:"国家统计局浙江调查总队",t:"杭州调查队业务处室一级科员",l:"市级",a:"普通职位",m:"统计学、经济学、数学",e:"本科及以上",p:"不限",x:"无限制",c:2,r:"浙江",notes:"宏观经济与民生调查"},
+  {d:"四川省自然资源厅",t:"国土空间规划处一级主任科员",l:"省级",a:"普通职位",m:"城乡规划、地理信息系统",e:"硕士及以上",p:"不限",x:"二年及以上",c:1,r:"四川",notes:"省域国土空间规划编制"},
+  {d:"成都市锦江区人民政府办公室",t:"综合文秘岗",l:"县级",a:"普通职位",m:"中国语言文学类、行政管理",e:"本科及以上",p:"中共党员",x:"无限制",c:2,r:"四川",notes:"政务信息与文稿起草"},
+  {d:"陕西省西安市雁塔区税务局",t:"办税服务厅一级行政执法员",l:"县级",a:"普通职位",m:"工商管理类、会计学、审计学",e:"本科及以上",p:"不限",x:"无限制",c:4,r:"陕西",notes:"智慧税务大厅综合业务"},
+  {d:"江苏省苏州工业园区管委会",t:"科技创新委员会一级科员",l:"市级",a:"普通职位",m:"电子信息类、生物医药、计算机类",e:"硕士及以上",p:"不限",x:"无限制",c:3,r:"江苏",notes:"高新技术园区产业孵化服务"},
+  {d:"山东省青岛市海洋发展局",t:"海洋经济处一级主任科员",l:"市级",a:"普通职位",m:"海洋科学、国际贸易",e:"本科及以上",p:"不限",x:"二年及以上",c:2,r:"山东",notes:"经略海洋战略项目推进"},
+  {d:"重庆市两江新区市场监督管理局",t:"综合执法大队一级行政执法员",l:"市级",a:"行政执法类",m:"食品安全、药学、法学",e:"本科及以上",p:"不限",x:"无限制",c:4,r:"重庆",notes:"市场综合巡查执法"},
+  {d:"国家金融监督管理总局湖南监管局",t:"长沙监管分局统计分析处一级主任科员",l:"省级",a:"普通职位",m:"金融学、保险精算、统计学",e:"硕士及以上",p:"中共党员",x:"二年及以上",c:2,r:"湖南",notes:"金融机构宏观审慎监管"},
+  {d:"天津海事局",t:"南疆海事处执法员",l:"市级",a:"普通职位",m:"航海技术、轮机工程",e:"本科及以上",p:"不限",x:"无限制",c:3,r:"天津",notes:"海事水上安全监管与巡查"},
+  {d:"贵州省黔东南州融媒体中心",t:"采编播发部一级科员",l:"市级",a:"普通职位",m:"新闻传播学类、汉语言文学",e:"本科及以上",p:"不限",x:"无限制",c:2,r:"贵州",notes:"地方文化与文旅融媒宣传"},
+  {d:"云南省西双版纳州勐腊县磨憨镇人民政府",t:"边境综合治理办公室一级科员",l:"乡镇",a:"普通职位",m:"专业不限",e:"大专及以上",p:"不限",x:"无限制",c:4,r:"云南",notes:"边境口岸基层治理服务，偏远津贴"},
+  {d:"黑龙江省大兴安岭地区行署林业局",t:"森林资源管护站业务员",l:"县级",a:"普通职位",m:"林学、生态学、专业不限",e:"大专及以上",p:"不限",x:"无限制",c:3,r:"黑龙江",notes:"大兴安岭生态林保护"},
+  {d:"新疆维吾尔自治区乌鲁木齐海关",t:"霍尔果斯海关监管一级执法员",l:"县级",a:"行政执法类",m:"国际物流、俄语、专业不限",e:"本科及以上",p:"不限",x:"无限制",c:5,r:"新疆",notes:"中欧班列口岸查验"},
+  {d:"海南省三亚市崖州湾科技城管理局",t:"深海科技发展局一级主任科员",l:"市级",a:"普通职位",m:"船舶与海洋工程、机械工程",e:"硕士及以上",p:"不限",x:"二年及以上",c:2,r:"海南",notes:"自贸港崖州湾深海科技极核服务"}
+];
+
 var STATE = {
+  favorites: (function(){try{return JSON.parse(localStorage.getItem("sheetlens_favs")||"[]");}catch(e){return[];}})(),
+  favFilterActive: false,
+  weights: { count: 25, tier: 20, level: 15, education: 15, spec: 15, location: 10 },
+  cmpChartType: 'radar',
+  cmpChartInstance: null,
+
   raw: [], filtered: [], provinceStats: {},
   provinceMap: {
     "北京":"北京市","上海":"上海市","天津":"天津市","重庆":"重庆市",
@@ -621,7 +802,7 @@ function applyFilters(positions, filters) {
   var kw=m?m.split(/[,，\s]+/).filter(Boolean):[];
   return positions.filter(function(r){
     if(p&&r.r!==p)return false;
-    if(kw.length&&!kw.some(function(k){return fuzzyMatch(r.m,k)}))return false;
+    if(kw.length&&!kw.some(function(k){return r.m&&r.m.indexOf(k)!==-1}))return false;
     if(e){if(e==="仅限本科"){if(r.e.indexOf("仅限本科")===-1&&r.e.indexOf("限本科")===-1)return false}else if(e==="仅限硕士"){if(r.e.indexOf("仅限硕士")===-1&&r.e.indexOf("限硕士")===-1)return false}else{var b=e.replace("仅限","");if(r.e.indexOf(b)===-1)return false;if(r.e.indexOf("仅限")!==-1&&r.e.indexOf(e)===-1)return false}}
     if(py){if(py==="党员"){if(r.p.indexOf("党员")===-1)return false}else if(py==="不限"){if(r.p&&(r.p.indexOf("党员")!==-1||r.p.indexOf("团员")!==-1))return false}}
     if(ex){if(ex==="无限制"){if(r.x&&r.x!=="无限制"&&r.x.indexOf("不限")===-1)return false}else{if(r.x.indexOf(ex.replace("及以上",""))===-1)return false}}
@@ -652,7 +833,7 @@ function showAC(query){
   if(!query||!STATE.majorIndex||!STATE.majorIndex.length){dd.style.display="none";acIdx=-1;return;}
   var parts=query.split(/[,，\s]+/),last=(parts[parts.length-1]||"").trim();
   if(!last||last.length<1){dd.style.display="none";acIdx=-1;return;}
-  var matches=STATE.majorIndex.filter(function(m){return fuzzyMatch(m,last);}).slice(0,15);
+  var matches=STATE.majorIndex.filter(function(m){return m.indexOf(last)!==-1;}).slice(0,15);
   if(!matches.length){dd.style.display="none";acIdx=-1;return;}
   acIdx=-1;
   dd.innerHTML='<div class="ac-hint">📚 匹配的专业（点击填入，↑↓选择）</div>'+matches.map(function(m,i){return'<div class="autocomplete-item" data-idx="'+i+'" data-val="'+m.replace(/"/g,"&quot;")+'">'+highlightAC(m,last)+'</div>';}).join("");
@@ -682,6 +863,146 @@ function selAC(){
 }
 
 // ═══════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════
+//  v2.5 RADAR SCORING ENGINE (吸收融合 post-cmp)
+// ═══════════════════════════════════════════════
+function clampScore(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+function getCityTierScore(locStr, r) {
+  var s = String(locStr || r || '').trim();
+  for (var i = 0; i < CITY_NAMES_SORTED.length; i++) {
+    if (s.indexOf(CITY_NAMES_SORTED[i]) !== -1) return CITY_TIERS[CITY_NAMES_SORTED[i]];
+  }
+  if (/(镇|乡|村)/.test(s)) return 5;
+  if (/县$/.test(s)) return 4;
+  if (/(省会|首府|市)/.test(s)) return 2;
+  return 3;
+}
+
+function scoreCount(n) {
+  var num = Math.max(1, parseInt(n) || 1);
+  return clampScore(Math.round(20 + 25 * Math.log2(num)), 0, 100);
+}
+
+function scoreTier(loc, r) {
+  var t = getCityTierScore(loc, r);
+  if (t === 1) return 100;
+  if (t === 2) return 80;
+  if (t === 3) return 55;
+  if (t === 4) return 38;
+  return 25;
+}
+
+function scoreLevel(level) {
+  var l = String(level || '');
+  if (/乡镇|基层/.test(l)) return 95;
+  if (/县/.test(l)) return 80;
+  if (/市/.test(l)) return 55;
+  if (/省/.test(l)) return 35;
+  if (/中央/.test(l)) return 20;
+  return 50;
+}
+
+function scoreEducation(edu) {
+  var e = String(edu || '');
+  if (/博士/.test(e)) return 95;
+  if (/仅限硕士/.test(e)) return 70;
+  if (/硕士/.test(e)) return 82;
+  if (/仅限本科/.test(e)) return 50;
+  if (/本科/.test(e)) return 60;
+  if (/大专/.test(e)) return 38;
+  return 50;
+}
+
+function scoreLocation(loc, r) {
+  // 偏远避险友好度：乡镇与边远地区竞争较小，避险分高
+  var t = getCityTierScore(loc, r);
+  return clampScore(t * 20, 20, 100);
+}
+
+function scoreSpec(pos, userMajor) {
+  var m = String(pos.m || '').trim();
+  var um = String(userMajor || STATE.filters.major || '').trim();
+  if (!m || /不限|无限制/.test(m)) return 100;
+  if (!um) return 70; // 默认中位分
+
+  if (m.indexOf(um) !== -1 || um.indexOf(m) !== -1) return 98;
+
+  // 大类级联判定
+  for (var cat in MAJOR_TAXONOMY) {
+    var subs = MAJOR_TAXONOMY[cat];
+    var userInCat = (um.indexOf(cat) !== -1) || subs.some(function(s){ return um.indexOf(s) !== -1; });
+    var posInCat = (m.indexOf(cat) !== -1) || subs.some(function(s){ return m.indexOf(s) !== -1; });
+    if (userInCat && posInCat) return 90;
+  }
+
+  // 汉字重叠模糊计算
+  var umClean = um.replace(/[学类及以上专业门类]/g, '');
+  var mClean = m.replace(/[学类及以上专业门类]/g, '');
+  if (umClean && mClean) {
+    for (var c = 0; c < umClean.length; c++) {
+      if (mClean.indexOf(umClean[c]) !== -1) return 75;
+    }
+  }
+  return 35;
+}
+
+function calculateJobRadar(job) {
+  var sCount = scoreCount(job.c);
+  var sTier = scoreTier(job.d + (job.t||''), job.r);
+  var sLevel = scoreLevel(job.l);
+  var sEdu = scoreEducation(job.e);
+  var sSpec = scoreSpec(job, STATE.filters.major);
+  var sLoc = scoreLocation(job.d + (job.t||''), job.r);
+
+  var w = STATE.weights;
+  var sumW = (w.count + w.tier + w.level + w.education + w.spec + w.location) || 100;
+  var total = Math.round(
+    (sCount * w.count + sTier * w.tier + sLevel * w.level + sEdu * w.education + sSpec * w.spec + sLoc * w.location) / sumW
+  );
+
+  return {
+    scores: {
+      count: sCount,
+      tier: sTier,
+      level: sLevel,
+      education: sEdu,
+      spec: sSpec,
+      location: sLoc
+    },
+    total: total,
+    job: job
+  };
+}
+
+// ── 收藏夹辅助 ──
+function getJobSig(j) {
+  return String(j.d||'') + '::' + String(j.t||'') + '::' + String(j.r||'') + '::' + String(j.c||0);
+}
+function isJobFav(j) {
+  var sig = getJobSig(j);
+  return STATE.favorites.indexOf(sig) !== -1;
+}
+function toggleJobFav(j) {
+  var sig = getJobSig(j);
+  var idx = STATE.favorites.indexOf(sig);
+  if (idx !== -1) {
+    STATE.favorites.splice(idx, 1);
+    toast("已从候选清单移除");
+  } else {
+    STATE.favorites.push(sig);
+    toast("⭐ 已加入候选清单", "success");
+  }
+  try { localStorage.setItem("sheetlens_favs", JSON.stringify(STATE.favorites)); } catch(e) {}
+  updateFavBadge();
+  renderTable();
+}
+function updateFavBadge() {
+  var el = document.getElementById("favCount");
+  if (el) el.textContent = STATE.favorites.length;
+}
+
 //  SCORE
 // ═══════════════════════════════════════════════════════════════
 var EDU_LEVELS={"大专":1,"大专及以上":2,"本科":3,"本科及以上":3,"仅限本科":3,"硕士":5,"硕士研究生及以上":5,"仅限硕士":5,"博士":7,"博士研究生":7};
@@ -773,8 +1094,8 @@ function handleFiles(files){
   if(rejected.length)toast('⚠ 不支持的文件格式: '+rejected.join(', '),'warn');
   if(oversized.length)toast('⚠ 文件过大(>30MB): '+oversized.join(', '),'warn');
   if(!valid.length){if(rejected.length||oversized.length)return;return;}
-  files=valid;if(typeof XLSX==="undefined"){toast("⚠️ 组件加载中，请稍后重试","warn");return;}var allRows=[],totalFiles=files.length,loaded=0;Array.from(files).forEach(function(file){var reader=new FileReader();reader.onload=function(e){try{allRows=allRows.concat(parseExcelFile(e.target.result,file.name));}catch(err){console.error(file.name+":解析失败",err);}loaded++;if(loaded===totalFiles)finishUpload(allRows);};reader.readAsArrayBuffer(file);});}
-function parseExcelFile(data,fileName){var wb=XLSX.read(data,{type:"array"});var allResults=[];wb.SheetNames.forEach(function(sn){var ws=wb.Sheets[sn];if(!ws)return;var rows=XLSX.utils.sheet_to_json(ws,{defval:""});if(!rows.length)return;var headers=Object.keys(rows[0]);var testKws=["部门名称","招考职位","职位名称","专业","学历","工作地点","地区","省份"];var matched={},uniqueCols={};testKws.forEach(function(kw){for(var i=0;i<headers.length;i++){if(headers[i].indexOf(kw)!==-1){matched[kw]=headers[i];break;}}});Object.values(matched).forEach(function(v){uniqueCols[v]=true;});if(Object.keys(matched).length<3||Object.keys(uniqueCols).length<3){var rawRows=XLSX.utils.sheet_to_json(ws,{defval:"",header:1});if(rawRows.length>=2){var newHeaders=rawRows[1];rows=[];for(var r=2;r<rawRows.length;r++){var obj={};for(var c=0;c<newHeaders.length;c++)obj[String(newHeaders[c]||"")]=rawRows[r][c]!==undefined?rawRows[r][c]:"";rows.push(obj);}if(rows.length>0){headers=Object.keys(rows[0]);console.warn(fileName+"/"+sn+":自动跳过说明行");}}}function findCol(keywords){for(var i=0;i<headers.length;i++){var h=headers[i];for(var k=0;k<keywords.length;k++){if(h.indexOf(keywords[k])!==-1)return h;}}return null;}var mDept=findCol(["部门名称","招录机关","用人司局","招录单位","单位名称"]),mTitle=findCol(["招考职位","职位名称","招录职位","岗位名称","职位"]),mLevel=findCol(["机构层级","机构性质","单位层级","层级"]),mAttr=findCol(["职位属性","职位类别","岗位属性","考试类别"]),mMajor=findCol(["专业","学科"]),mEdu=findCol(["学历","文化程度","学位"]),mParty=findCol(["政治面貌"]),mExp=findCol(["基层工作最低年限","基层经验","基层工作年限","工作年限"]),mCount=findCol(["招考人数","招录人数","计划招录","招录计划","招录"]),mRegion=findCol(["地区","省份","所属地区","所在省份","工作所在地"]),mLocation=findCol(["工作地点","工作地址","地点","所在地"]);console.log(fileName+"/"+sn+":检测到表头",JSON.stringify(headers.slice(0,15)));if(!mMajor){console.warn(fileName+"/"+sn+":无「专业」列，跳过。表头="+JSON.stringify(headers));return;}var result=[];rows.forEach(function(row){var region=String(row[mRegion]||"");if(!region&&mLocation){var loc=String(row[mLocation]||"");for(var s in STATE.provinceMap){if(loc.indexOf(s)!==-1){region=s;break;}}}if(!region)return;var count=parseInt(row[mCount])||1;result.push({d:String(row[mDept]||""),t:String(row[mTitle]||""),l:String(row[mLevel]||""),a:String(row[mAttr]||""),m:String(row[mMajor]||""),e:String(row[mEdu]||""),p:String(row[mParty]||""),x:String(row[mExp]||""),c:count,r:region});});if(result.length){console.log(fileName+"/"+sn+":解析"+result.length+"行");allResults=allResults.concat(result);}});console.log(fileName+":共"+wb.SheetNames.length+"个Sheet，有效数据"+allResults.length+"行");return allResults;}
+  files=valid;if(typeof XLSX==="undefined"){toast("⚠️ 组件加载中，请稍后重试","warn");return;}var allRows=[],totalFiles=files.length,loaded=0;var procMsg=document.getElementById("chartStatus");if(procMsg)procMsg.textContent="正在解析... (0/"+totalFiles+")";Array.from(files).forEach(function(file){var reader=new FileReader();reader.onload=function(e){try{allRows=allRows.concat(parseExcelFile(e.target.result,file.name));}catch(err){console.error(file.name+":解析失败",err);}loaded++;if(procMsg)procMsg.textContent="正在解析... ("+loaded+"/"+totalFiles+")";if(loaded===totalFiles)finishUpload(allRows);};reader.readAsArrayBuffer(file);});}
+function parseExcelFile(data,fileName){var wb=XLSX.read(data,{type:"array"});var allResults=[];wb.SheetNames.forEach(function(sn){var ws=wb.Sheets[sn];if(!ws)return;var rows=XLSX.utils.sheet_to_json(ws,{defval:""});if(!rows.length)return;var headers=Object.keys(rows[0]);var testKws=["部门名称","招考职位","职位名称","专业","学历","工作地点","地区","省份"];var matched={},uniqueCols={};testKws.forEach(function(kw){for(var i=0;i<headers.length;i++){if(headers[i].indexOf(kw)!==-1){matched[kw]=headers[i];break;}}});Object.values(matched).forEach(function(v){uniqueCols[v]=true;});if(Object.keys(matched).length<3||Object.keys(uniqueCols).length<3){var rawRows=XLSX.utils.sheet_to_json(ws,{defval:"",header:1});if(rawRows.length>=2){var newHeaders=rawRows[1];rows=[];for(var r=2;r<rawRows.length;r++){var obj={};for(var c=0;c<newHeaders.length;c++)obj[String(newHeaders[c]||"")]=rawRows[r][c]!==undefined?rawRows[r][c]:"";rows.push(obj);}if(rows.length>0){headers=Object.keys(rows[0]);console.warn(fileName+"/"+sn+":自动跳过说明行");}}}function findCol(keywords){for(var i=0;i<headers.length;i++){var h=headers[i];for(var k=0;k<keywords.length;k++){if(h.indexOf(keywords[k])!==-1)return h;}}return null;}var mDept=findCol(["部门名称","招录机关","用人司局","招录单位","单位名称"]),mTitle=findCol(["招考职位","职位名称","招录职位","岗位名称","职位"]),mLevel=findCol(["机构层级","机构性质","单位层级","层级"]),mAttr=findCol(["职位属性","职位类别","岗位属性","考试类别"]),mMajor=findCol(["专业","学科"]),mEdu=findCol(["学历","文化程度","学位"]),mParty=findCol(["政治面貌"]),mExp=findCol(["基层工作最低年限","基层经验","基层工作年限","工作年限"]),mCount=findCol(["招考人数","招录人数","计划招录","招录计划","招录"]),mRegion=findCol(["地区","省份","所属地区","所在省份","工作所在地"]),mLocation=findCol(["工作地点","工作地址","地点","所在地"]);console.log(fileName+"/"+sn+":检测到表头",JSON.stringify(headers.slice(0,15)));if(!mMajor){console.warn(fileName+"/"+sn+":无「专业」列，跳过。表头="+JSON.stringify(headers));return;}var result=[];var droppedRegion=0;rows.forEach(function(row){var region=String(row[mRegion]||"");if(!region&&mLocation){var loc=String(row[mLocation]||"");for(var s in STATE.provinceMap){if(loc.indexOf(s)!==-1){region=s;break;}}}if(!region){droppedRegion++;return;}var count=parseInt(row[mCount])||1;result.push({d:String(row[mDept]||""),t:String(row[mTitle]||""),l:String(row[mLevel]||""),a:String(row[mAttr]||""),m:String(row[mMajor]||""),e:String(row[mEdu]||""),p:String(row[mParty]||""),x:String(row[mExp]||""),c:count,r:region});});if(droppedRegion>0)console.warn(fileName+"/"+sn+":因无地区信息跳过"+droppedRegion+"行");if(result.length){console.log(fileName+"/"+sn+":解析"+result.length+"行");allResults=allResults.concat(result);}});console.log(fileName+":共"+wb.SheetNames.length+"个Sheet，有效数据"+allResults.length+"行");return allResults;}
 function finishUpload(allRows){if(!allRows.length){toast("⚠️ 未能解析有效数据，请检查文件格式","warn");return;}STATE.raw=allRows;STATE.meta.userDataLoaded=true;STATE.meta.dataYear=new Date().toISOString().slice(0,10);document.getElementById("dataBadge").textContent="📎 用户数据 ("+formatNum(allRows.length)+"岗)";document.getElementById("dataBadge").className="data-badge user";document.getElementById("statYear").textContent="上传";STATE.sort.key=null;STATE.sort.asc=true;STATE.filters={province:"",major:"",edu:"",party:"",exp:""};STATE.filterHistory=[];updateUndoBtn();document.getElementById("selProvince").value="";document.getElementById("selMajor").value="";document.getElementById("selEdu").value="";document.getElementById("selParty").value="";document.getElementById("selExp").value="";STATE.filtered=STATE.raw.slice();buildMajorIndex();saveFiltersToStorage();document.getElementById("uploadZone").classList.remove("idle");STATE._prevStats=null;dataChanged();renderTable();if(typeof destroyAllCharts==="function")destroyAllCharts();hideEmptyStates();toast("✅ 成功解析 "+formatNum(allRows.length)+" 个岗位","success");}
 
 // ═══════════════════════════════════════════════════════════════
@@ -783,20 +1104,46 @@ function finishUpload(allRows){if(!allRows.length){toast("⚠️ 未能解析有
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function hideEmptyStates(){document.getElementById("trendEmpty").style.display="none";document.getElementById("trendCharts").style.display="block";document.getElementById("tableEmpty").style.display="none";document.getElementById("tableContent").style.display="block";}
 function renderTable(){
-  var data=STATE.filtered,tbody=document.getElementById("tableBody"),info=document.getElementById("tableInfo");
+  var rawData=STATE.filtered;
+  var data = STATE.favFilterActive ? rawData.filter(function(r){ return isJobFav(r); }) : rawData;
+  var tbody=document.getElementById("tableBody"),info=document.getElementById("tableInfo");
   var scoring=hasProfile();
   document.getElementById("thScore").style.display=scoring?"":"none";
-  var colSpan=scoring?11:10;
-  if(!data.length){info.textContent="暂无匹配岗位";tbody.innerHTML='<tr><td colspan="'+colSpan+'" style="text-align:center;padding:40px;color:var(--muted)">没有岗位匹配当前筛选条件<br><small>试试调整专业关键词或放宽学历要求</small></td></tr>';return;}
+  var colSpan=scoring?12:11;
+  updateFavBadge();
+
+  if(!data.length){
+    info.textContent=STATE.favFilterActive ? "候选清单暂无岗位" : "暂无匹配岗位";
+    tbody.innerHTML='<tr><td colspan="'+colSpan+'" style="text-align:center;padding:40px;color:var(--muted)">' +
+      (STATE.favFilterActive ? '您尚未收藏任何候选岗位<br><small>点击表格行前的 ⭐ 即可加入候选清单</small>' : '没有岗位匹配当前筛选条件<br><small>试试调整专业关键词或放宽学历要求</small>') +
+      '</td></tr>';
+    return;
+  }
   var d=data.slice();
   if(STATE.sort.key){d.sort(function(a,b){var key=STATE.sort.key,va,vb;if(key==="_score"){va=a._score!==null?a._score:-1;vb=b._score!==null?b._score:-1;}else if(key==="c"){va=Number(a[key]);vb=Number(b[key]);}else{va=String(a[key]||"");vb=String(b[key]||"");}if(va<vb)return STATE.sort.asc?-1:1;if(va>vb)return STATE.sort.asc?1:-1;return 0;});}
   STATE._displayed=d;
   var totalPages=Math.ceil(d.length/STATE.pageSize)||1;
   if(STATE.page>totalPages)STATE.page=totalPages;
   var start=(STATE.page-1)*STATE.pageSize,disp=d.slice(start,start+STATE.pageSize);
-  info.textContent="共 "+formatNum(data.length)+" 条 · 第 "+STATE.page+"/"+totalPages+" 页 · 点击行查看详情";
+  info.textContent=(STATE.favFilterActive ? "⭐ 候选清单 · " : "") + "共 "+formatNum(data.length)+" 条 · 第 "+STATE.page+"/"+totalPages+" 页 · 点击行查看详情";
   if(scoring){var ss=computeScoreStats(data);document.getElementById("scoreSummary").textContent=ss?"均分 "+ss.avg+"分 | ⭐"+(ss.dist["强烈推荐"]+ss.dist["推荐"])+" 个推荐":"";}else{document.getElementById("scoreSummary").textContent="";}
-  tbody.innerHTML=disp.map(function(r,i){var idx=d.indexOf(r);var row="";if(scoring){var g=scoreGrade(r._score),l=scoreLabel(r._score);row+='<td><span class="score-cell '+g+'">'+(r._score!==null?l:"—")+'</span></td>';}row+="<td>"+esc(r.d)+"</td><td>"+esc(r.t)+"</td><td>"+esc(r.l)+"</td><td>"+esc(r.e)+"</td><td>"+(esc(r.p)||"不限")+"</td><td>"+(esc(r.x)||"无限制")+"</td><td>"+r.c+"</td><td>"+esc(r.r)+"</td>";var checked=STATE.compareSet.indexOf(idx)!==-1?" checked":"";return'<tr class="clickable-row" data-idx="'+idx+'"><td style="text-align:center"><input type="checkbox" class="compare-cb" data-idx="'+idx+'"'+checked+'></td>'+row+"</tr>";}).join("");
+  
+  tbody.innerHTML=disp.map(function(r,i){
+    var idx=d.indexOf(r);
+    var row="";
+    if(scoring){
+      var g=scoreGrade(r._score),l=scoreLabel(r._score);
+      row+='<td><span class="score-cell '+g+'">'+(r._score!==null?l:"—")+'</span></td>';
+    }
+    row+="<td>"+esc(r.d)+"</td><td>"+esc(r.t)+"</td><td>"+esc(r.l)+"</td><td>"+esc(r.e)+"</td><td>"+(esc(r.p)||"不限")+"</td><td>"+(esc(r.x)||"无限制")+"</td><td>"+r.c+"</td><td>"+esc(r.r)+"</td>";
+    var checked=STATE.compareSet.indexOf(r)!==-1?" checked":"";
+    var starred=isJobFav(r)?" starred":"";
+    return '<tr class="clickable-row" data-idx="'+idx+'">'+
+      '<td style="text-align:center"><input type="checkbox" class="compare-cb" data-idx="'+idx+'"'+checked+'></td>'+
+      '<td style="text-align:center"><button type="button" class="star-btn'+starred+'" data-idx="'+idx+'" title="'+(starred?'取消收藏':'加入候选')+'">⭐</button></td>'+
+      row+
+    '</tr>';
+  }).join("");
   updatePagination();
 }
 function updatePagination(){
@@ -817,42 +1164,365 @@ function setSort(key){if(STATE.sort.key===key)STATE.sort.asc=!STATE.sort.asc;els
 function updateSortArrows(){document.querySelectorAll(".table-wrap th").forEach(function(th){var key=th.getAttribute("data-sort");if(!key)return;th.textContent=th.textContent.replace(/ [▴▾]/g,"");});if(STATE.sort.key){var at=document.querySelector('.table-wrap th[data-sort="'+STATE.sort.key+'"]');if(at)at.textContent+=STATE.sort.asc?" ▴":" ▾";}}
 document.addEventListener("DOMContentLoaded",function(){var thead=document.querySelector(".table-wrap thead");if(thead){thead.addEventListener("click",function(e){var th=e.target.closest("th");if(!th)return;var key=th.getAttribute("data-sort");if(key)setSort(key);});}});
 // 表格行点击 → 详情弹窗（点复选框不触发弹窗）
-document.addEventListener("click",function(e){if(e.target.closest("input.compare-cb"))return;if(e.target.closest("#cbSelectAll"))return;var tr=e.target.closest("tr.clickable-row");if(!tr)return;var idx=parseInt(tr.getAttribute("data-idx"));var row=STATE._displayed&&STATE._displayed[idx];if(row)openModal(row);});
+
+// ⭐ 收藏点击事件代理
+document.addEventListener("click", function(e){
+  var btn = e.target.closest("button.star-btn");
+  if(!btn) return;
+  e.stopPropagation();
+  var idx = parseInt(btn.getAttribute("data-idx"));
+  var row = STATE._displayed && STATE._displayed[idx];
+  if(row) toggleJobFav(row);
+});
+
+document.addEventListener("click",function(e){if(e.target.closest("input.compare-cb"))return;if(e.target.closest("button.star-btn"))return;if(e.target.closest("#cbSelectAll"))return;var tr=e.target.closest("tr.clickable-row");if(!tr)return;var idx=parseInt(tr.getAttribute("data-idx"));var row=STATE._displayed&&STATE._displayed[idx];if(row)openModal(row);});
 // 复选框变更 → 更新对比集
 document.addEventListener("change",function(e){
   if(!e.target.classList.contains("compare-cb")&&e.target.id!=="cbSelectAll")return;
-  var cb=e.target,idx=parseInt(cb.getAttribute("data-idx"));
+  var cb=e.target,idx=parseInt(cb.getAttribute("data-idx")),row=STATE._displayed&&STATE._displayed[idx];
   if(cb.id==="cbSelectAll"){
     STATE.compareSet=[];
-    if(cb.checked){var d=STATE._displayed||[];for(var i=0;i<Math.min(d.length,3);i++)STATE.compareSet.push(i);}
+    if(cb.checked&&row){var d=STATE._displayed||[];for(var i=0;i<Math.min(d.length,3);i++)STATE.compareSet.push(d[i]);}
     document.querySelectorAll(".compare-cb").forEach(function(c){c.checked=cb.checked&&parseInt(c.getAttribute("data-idx"))<3;});
   }else{
-    if(cb.checked){if(STATE.compareSet.length>=3){cb.checked=false;toast("最多对比3个岗位","warn");return;}STATE.compareSet.push(idx);}
-    else{STATE.compareSet=STATE.compareSet.filter(function(v){return v!==idx;});}
+    if(!row)return;
+    if(cb.checked){if(STATE.compareSet.length>=3){cb.checked=false;toast("最多对比3个岗位","warn");return;}STATE.compareSet.push(row);}
+    else{STATE.compareSet=STATE.compareSet.filter(function(v){return v!==row;});}
     document.getElementById("cbSelectAll").checked=STATE.compareSet.length===Math.min((STATE._displayed||[]).length,3);
   }
   updateCompareBtn();
 });
 function updateCompareBtn(){var b=document.getElementById("btnCompare"),n=STATE.compareSet.length;b.disabled=n<2;b.textContent=n?"⚖ 对比选中 ("+n+")":"⚖ 对比选中";}
+// ═══════════════════════════════════════════════
+//  v2.5 FLAGSHIP RADAR COMPARISON MODAL
+// ═══════════════════════════════════════════════
+const CMP_COLORS = ['#e67e22', '#06b6d4', '#10b981', '#8b5cf6'];
+
 function openCompare(){
-  var d=STATE._displayed||[],items=STATE.compareSet.map(function(i){return d[i];}).filter(Boolean);
-  if(items.length<2)return;
-  var fields=[{k:"d",l:"部门名称"},{k:"t",l:"职位名称"},{k:"l",l:"机构层级"},{k:"a",l:"职位属性"},{k:"m",l:"专业要求"},{k:"e",l:"学历要求"},{k:"p",l:"政治面貌"},{k:"x",l:"基层经验"},{k:"c",l:"招考人数"},{k:"r",l:"省份"}];
-  var html='<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th style="padding:8px;background:var(--border);text-align:left">字段</th>';
-  items.forEach(function(it,i){html+='<th style="padding:8px;background:var(--accent-light);text-align:left;color:var(--primary)">岗位'+(i+1)+'</th>';});
-  html+='</tr></thead><tbody>';
-  fields.forEach(function(f){html+='<tr><td style="padding:8px;border-bottom:1px solid var(--border);font-weight:600;color:var(--muted);white-space:nowrap">'+f.l+'</td>';items.forEach(function(it){var v=it[f.k]||"—";if(f.k==="c")v=v+" 人";if(f.k==="p"&&!v)v="不限";if(f.k==="x"&&!v)v="无限制";html+='<td style="padding:8px;border-bottom:1px solid var(--border)">'+v+'</td>';});html+='</tr>';});
-  // 评分对比
-  if(items[0]._score!==null&&items[0]._score!==undefined){
-    html+='<tr><td style="padding:8px;border-bottom:1px solid var(--border);font-weight:600;color:var(--muted)">⭐ 匹配评分</td>';
-    items.forEach(function(it){var s=it._score,l=scoreLabel(it._score);html+='<td style="padding:8px;border-bottom:1px solid var(--border);font-weight:700;color:var(--primary)">'+s+'分 <span style="font-size:11px">'+l+'</span></td>';});
-    html+='</tr>';
+  var items = STATE.compareSet.filter(Boolean);
+  if(items.length < 2) {
+    toast("请至少勾选 2 个岗位进行对比", "warn");
+    return;
   }
-  html+='</tbody></table>';
-  document.getElementById("modalTitle").textContent="⚖ 岗位对比（"+items.length+"个）";
-  document.getElementById("modalBody").innerHTML=html;
-  document.getElementById("modalOverlay").style.display="flex";
+  if(items.length > 4) {
+    items = items.slice(0, 4);
+  }
+
+  var modalCard = document.getElementById("modalCard");
+  modalCard.classList.add("compare-modal");
+  document.getElementById("modalTitle").innerHTML = "⚖ 六维深度决策对比（已选 " + items.length + " 个岗位）";
+
+  // Build Modal Body Shell
+  var html = '<div class="cmp-container">' +
+    '<div id="cmpChampionBanner" class="champion-banner"></div>' +
+    '<div class="cmp-top-grid">' +
+      '<div>' +
+        '<div class="chart-toggle-row">' +
+          '<div style="font-weight:700;font-size:13px;color:var(--primary)">📊 多维量化图谱</div>' +
+          '<div style="display:flex;gap:6px">' +
+            '<button type="button" class="chart-toggle-btn ' + (STATE.cmpChartType==='radar'?'active':'') + '" id="btnCmpRadar">🕸️ 六维雷达</button>' +
+            '<button type="button" class="chart-toggle-btn ' + (STATE.cmpChartType==='bar'?'active':'') + '" id="btnCmpBar">📊 分组柱状</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="radar-box" id="cmpRadarBox"></div>' +
+      '</div>' +
+      '<div class="weights-panel">' +
+        '<div class="weights-title">' +
+          '<span>⚙️ 决策权重微调</span>' +
+          '<span style="font-size:11px;font-weight:400;color:var(--muted)">拖动滑块实时重算</span>' +
+        '</div>' +
+        '<div id="cmpSlidersBox"></div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="margin-top:10px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+        '<div style="font-weight:700;font-size:14px;color:var(--text)">📋 核心维度明细对照矩阵</div>' +
+        '<button class="btn btn-outline btn-sm" id="btnExportCmpCSV">📥 导出对比表 (CSV)</button>' +
+      '</div>' +
+      '<div id="cmpTableBox"></div>' +
+    '</div>' +
+  '</div>';
+
+  document.getElementById("modalBody").innerHTML = html;
+  document.getElementById("modalOverlay").style.display = "flex";
+
+  // Render Sliders
+  renderCmpSliders(items);
+  // Render Chart & Matrix
+  updateCmpAll(items);
+
+  // Bind Chart Toggle Buttons
+  document.getElementById("btnCmpRadar").addEventListener("click", function(){
+    STATE.cmpChartType = 'radar';
+    this.classList.add("active");
+    document.getElementById("btnCmpBar").classList.remove("active");
+    renderCmpChart(items);
+  });
+  document.getElementById("btnCmpBar").addEventListener("click", function(){
+    STATE.cmpChartType = 'bar';
+    this.classList.add("active");
+    document.getElementById("btnCmpRadar").classList.remove("active");
+    renderCmpChart(items);
+  });
+
+  // Export CSV
+  document.getElementById("btnExportCmpCSV").addEventListener("click", function(){
+    exportComparisonCSV(items);
+  });
 }
+
+function renderCmpSliders(items) {
+  var box = document.getElementById("cmpSlidersBox");
+  if(!box) return;
+  var dims = ['count', 'tier', 'level', 'education', 'spec', 'location'];
+  var h = '';
+  dims.forEach(function(d){
+    var w = STATE.weights[d] || 15;
+    h += '<div class="weight-slider-row">' +
+      '<div class="weight-label-row">' +
+        '<span>' + WEIGHT_LABELS[d] + '</span>' +
+        '<b id="val_' + d + '" style="color:var(--primary)">' + w + '%</b>' +
+      '</div>' +
+      '<input type="range" class="weight-slider-input" data-dim="' + d + '" min="0" max="50" step="5" value="' + w + '">' +
+    '</div>';
+  });
+  box.innerHTML = h;
+
+  box.querySelectorAll("input.weight-slider-input").forEach(function(input){
+    input.addEventListener("input", function(){
+      var dim = this.getAttribute("data-dim");
+      var val = parseInt(this.value);
+      STATE.weights[dim] = val;
+      document.getElementById("val_" + dim).textContent = val + '%';
+      updateCmpAll(items);
+    });
+  });
+}
+
+function updateCmpAll(items) {
+  var radarResults = items.map(function(item){
+    return calculateJobRadar(item);
+  });
+
+  // Find Winner
+  var maxScore = -1, winnerIdx = 0;
+  radarResults.forEach(function(r, i){
+    if(r.total > maxScore) {
+      maxScore = r.total;
+      winnerIdx = i;
+    }
+  });
+
+  // Update Champion Banner
+  var banner = document.getElementById("cmpChampionBanner");
+  if(banner) {
+    var winJob = items[winnerIdx];
+    banner.innerHTML = '<div>' +
+      '<span style="font-size:16px;margin-right:6px">🏆</span>' +
+      '<b>综合推荐优胜：</b>' +
+      '<span style="color:' + CMP_COLORS[winnerIdx] + ';font-weight:700">【岗位 ' + (winnerIdx+1) + '】' + esc(winJob.d) + ' · ' + esc(winJob.t) + '</span>' +
+    '</div>' +
+    '<div>' +
+      '<span class="winner-pill" style="font-size:13px">综合得分 ' + maxScore + ' 分</span>' +
+    '</div>';
+  }
+
+  // Render Table Matrix
+  renderCmpMatrix(items, radarResults, winnerIdx);
+
+  // Render Chart
+  setTimeout(function(){ renderCmpChart(items, radarResults); }, 50);
+}
+
+function renderCmpMatrix(items, radarResults, winnerIdx) {
+  var box = document.getElementById("cmpTableBox");
+  if(!box) return;
+
+  var dims = [
+    { k: 'total', l: '⭐ 综合决策总分' },
+    { k: 'count', l: '👥 招录规模' },
+    { k: 'tier', l: '🏙️ 城市区位' },
+    { k: 'level', l: '🏛️ 机构层级' },
+    { k: 'education', l: '🎓 学历优势' },
+    { k: 'spec', l: '🎯 专业契合' },
+    { k: 'location', l: '🛡️ 竞争避险' },
+    { k: 'd', l: '部门名称' },
+    { k: 't', l: '职位名称' },
+    { k: 'm', l: '专业要求' },
+    { k: 'e', l: '学历要求' },
+    { k: 'p', l: '政治面貌' },
+    { k: 'x', l: '基层经验' },
+    { k: 'r', l: '工作省份' }
+  ];
+
+  var html = '<table class="cmp-table"><thead><tr>' +
+    '<th style="width:130px">指标 / 维度</th>';
+  items.forEach(function(it, i){
+    var isWin = (i === winnerIdx);
+    html += '<th style="color:' + CMP_COLORS[i] + '">' +
+      '岗位 ' + (i+1) + (isWin ? ' 🏆' : '') +
+      '<div style="font-size:11px;font-weight:400;color:var(--text);margin-top:2px">' + esc(it.t).slice(0,14) + '</div>' +
+    '</th>';
+  });
+  html += '</tr></thead><tbody>';
+
+  dims.forEach(function(dim){
+    var isScoreRow = ['total','count','tier','level','education','spec','location'].indexOf(dim.k) !== -1;
+    var rowBg = isScoreRow ? 'background:rgba(230,126,34,0.03);' : '';
+    html += '<tr style="' + rowBg + '">' +
+      '<td style="font-weight:600;color:var(--muted)">' + dim.l + '</td>';
+    
+    // Find highest value for score rows
+    var bestVal = -1;
+    if(isScoreRow) {
+      radarResults.forEach(function(r){
+        var v = (dim.k==='total') ? r.total : r.scores[dim.k];
+        if(v > bestVal) bestVal = v;
+      });
+    }
+
+    items.forEach(function(it, i){
+      var r = radarResults[i];
+      var cellContent = '';
+      if(dim.k === 'total') {
+        var isBest = (r.total === bestVal);
+        cellContent = '<b style="font-size:15px;color:' + CMP_COLORS[i] + '">' + r.total + ' 分</b>' +
+          (isBest ? ' <span class="winner-pill">最优</span>' : '');
+      } else if(isScoreRow) {
+        var sc = r.scores[dim.k];
+        var isBest = (sc === bestVal);
+        cellContent = '<b>' + sc + ' 分</b>' + (isBest ? ' <span class="winner-pill">胜出</span>' : '');
+      } else {
+        var v = it[dim.k] || '—';
+        if(dim.k === 'c') v = v + ' 人';
+        cellContent = esc(v);
+      }
+      html += '<td>' + cellContent + '</td>';
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  box.innerHTML = html;
+}
+
+function renderCmpChart(items, radarResults) {
+  if(!echartsReady()) return;
+  var el = document.getElementById("cmpRadarBox");
+  if(!el) return;
+
+  if(!radarResults) {
+    radarResults = items.map(function(item){ return calculateJobRadar(item); });
+  }
+
+  if(STATE.cmpChartInstance && !STATE.cmpChartInstance.isDisposed()) {
+    STATE.cmpChartInstance.dispose();
+  }
+  STATE.cmpChartInstance = echarts.init(el);
+
+  var isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  var textColor = isDark ? "#cbd5e1" : "#475569";
+  var splitColor = isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)";
+  var dims = ['count', 'tier', 'level', 'education', 'spec', 'location'];
+  var indicators = dims.map(function(d){ return { name: WEIGHT_LABELS[d], max: 100 }; });
+
+  var opt;
+  if(STATE.cmpChartType === 'bar') {
+    opt = {
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+      legend: {
+        bottom: 6,
+        data: items.map(function(it, i){ return '岗位 ' + (i+1) + ': ' + (it.t||'').slice(0,8); }),
+        textStyle: { color: textColor, fontSize: 11 }
+      },
+      grid: { left: 40, right: 20, top: 30, bottom: 46, containLabel: true },
+      xAxis: {
+        type: 'category',
+        data: dims.map(function(d){ return WEIGHT_LABELS[d]; }),
+        axisLabel: { color: textColor, fontSize: 11 }
+      },
+      yAxis: { type: 'value', max: 100, axisLabel: { color: textColor } },
+      series: items.map(function(it, i){
+        var r = radarResults[i];
+        return {
+          name: '岗位 ' + (i+1) + ': ' + (it.t||'').slice(0,8),
+          type: 'bar',
+          data: dims.map(function(d){ return r.scores[d]; }),
+          itemStyle: { color: CMP_COLORS[i], borderRadius: [4, 4, 0, 0] }
+        };
+      })
+    };
+  } else {
+    opt = {
+      tooltip: { trigger: 'item' },
+      legend: {
+        bottom: 6,
+        data: items.map(function(it, i){ return '岗位 ' + (i+1) + ' (' + radarResults[i].total + '分)'; }),
+        textStyle: { color: textColor, fontSize: 11 }
+      },
+      radar: {
+        indicator: indicators,
+        shape: 'polygon',
+        splitNumber: 4,
+        axisName: { color: textColor, fontSize: 12, fontWeight: 600 },
+        splitLine: { lineStyle: { color: splitColor } },
+        splitArea: { show: true, areaStyle: { color: isDark ? ['rgba(255,255,255,0.02)','rgba(255,255,255,0.05)'] : ['rgba(0,0,0,0.01)','rgba(0,0,0,0.03)'] } },
+        axisLine: { lineStyle: { color: splitColor } }
+      },
+      series: [{
+        type: 'radar',
+        data: items.map(function(it, i){
+          var r = radarResults[i];
+          return {
+            name: '岗位 ' + (i+1) + ' (' + r.total + '分)',
+            value: dims.map(function(d){ return r.scores[d]; }),
+            itemStyle: { color: CMP_COLORS[i] },
+            lineStyle: { width: 2.5 },
+            areaStyle: { color: CMP_COLORS[i], opacity: 0.22 }
+          };
+        })
+      }]
+    };
+  }
+
+  STATE.cmpChartInstance.setOption(opt);
+}
+
+function exportComparisonCSV(items) {
+  if(!items || !items.length) return;
+  var radarResults = items.map(function(item){ return calculateJobRadar(item); });
+  var rows = [
+    ['岗位编号', '部门名称', '职位名称', '综合决策分', '招录规模分', '城市区位分', '机构层级分', '学历优势分', '专业契合分', '竞争避险分', '招录人数', '省份']
+  ];
+  items.forEach(function(it, i){
+    var r = radarResults[i];
+    rows.push([
+      '岗位 ' + (i+1),
+      it.d || '',
+      it.t || '',
+      r.total,
+      r.scores.count,
+      r.scores.tier,
+      r.scores.level,
+      r.scores.education,
+      r.scores.spec,
+      r.scores.location,
+      it.c || 1,
+      it.r || ''
+    ]);
+  });
+  var csv = '﻿' + rows.map(function(row){ return row.map(function(c){ return '"' + String(c).replace(/"/g,'""') + '"'; }).join(','); }).join('
+');
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'SheetLens六维对比报告_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('📥 对比报告已成功导出', 'success');
+}
+
 function exportCSV(){var data=STATE.filtered;if(!data.length){toast("⚠️ 没有数据可导出","warn");return;}var scoring=hasProfile();var headers=scoring?["评分","部门名称","职位名称","机构层级","学历要求","政治面貌","基层经验","招考人数","省份"]:["部门名称","职位名称","机构层级","学历要求","政治面貌","基层经验","招考人数","省份"];var keys=scoring?["_score","d","t","l","e","p","x","c","r"]:["d","t","l","e","p","x","c","r"];var csv="﻿"+headers.join(",")+"\n";data.forEach(function(r){csv+=keys.map(function(k){var v=(k==="_score")?(r._score!==null?scoreLabel(r._score):""):(r[k]||"");return'"'+String(v).replace(/"/g,'""')+'"';}).join(",")+"\n";});var blob=new Blob([csv],{type:"text/csv;charset=utf-8"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download="SheetLens筛选结果_"+new Date().toISOString().slice(0,10)+".csv";a.click();URL.revokeObjectURL(url);toast("📥 已导出 "+formatNum(data.length)+" 条数据","success");}
 
 // ── 图表暗色适配 ──
@@ -920,7 +1590,7 @@ window.addEventListener("resize",function(){if(!document.getElementById("tab-tre
 // ═══════════════════════════════════════════════════════════════
 //  APP CONTROLLER
 // ═══════════════════════════════════════════════════════════════
-var currentTab="map";
+var currentTab="table";
 function switchTab(tab){currentTab=tab;document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");if(b.getAttribute("data-tab")===tab)b.classList.add("active");});document.querySelectorAll(".tab-content").forEach(function(c){c.classList.remove("active");});var el=document.getElementById("tab-"+tab);if(el)el.classList.add("active");onTabChanged(tab);}
 function onTabChanged(tab){if(tab==="trend")setTimeout(function(){if(STATE.raw.length)renderTrend();},200);if(tab==="map")setTimeout(function(){if(echartsReady()&&mapChart&&!mapChart.isDisposed())mapChart.resize();},200);}
 function renderAll(){if(currentTab==="map")renderMap();else if(currentTab==="trend"&&STATE.raw.length)renderTrend();else if(currentTab==="table")renderTable();}
@@ -964,10 +1634,10 @@ function hasProfile(){return !!(STATE.filters.major||STATE.filters.edu||STATE.fi
 // ═══════════════════════════════════════════════════════════════
 //  UX & VISUALS — 计数滚动 / Toast / 筛选标签 / 数字格式化
 // ═══════════════════════════════════════════════════════════════
-function formatNum(n){return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,",");}
-function toast(msg,type){
+function formatNum(n){if(n==null||isNaN(n))return"0";return Number(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,",");}
+function toast(msg,type,duration){
   var el=document.createElement("div");el.className="toast"+(type?" "+type:"");el.textContent=msg;
-  document.body.appendChild(el);setTimeout(function(){el.remove();},2300);
+  document.body.appendChild(el);setTimeout(function(){el.remove();},typeof duration==="number"?duration:2300);
 }
 function renderFilterBadges(){
   var f=STATE.filters,badges=[];
@@ -980,8 +1650,16 @@ function renderFilterBadges(){
   if(!c||!b)return;
   if(!badges.length){c.style.display="none";return;}
   c.style.display="flex";
-  b.innerHTML=badges.map(function(x){return'<span class="af-badge">'+x.l+' '+x.v+' <button class="af-remove" data-key="'+x.k+'" title="移除此筛选">×</button></span>';}).join("");
-  b.querySelectorAll(".af-remove").forEach(function(btn){btn.addEventListener("click",function(){clearOneFilter(this.getAttribute("data-key"));});});
+  b.textContent=""; // Clear safely (not innerHTML)
+  badges.forEach(function(x){
+    var span=document.createElement("span");span.className="af-badge";
+    span.appendChild(document.createTextNode(x.l+" "+x.v+" "));
+    var btn=document.createElement("button");btn.className="af-remove";
+    btn.setAttribute("data-key",x.k);btn.title="移除此筛选";
+    btn.textContent="×";
+    btn.addEventListener("click",function(){clearOneFilter(this.getAttribute("data-key"));});
+    span.appendChild(btn);b.appendChild(span);
+  });
 }
 function clearOneFilter(key){
   if(key==="major")document.getElementById("selMajor").value="";
@@ -994,20 +1672,28 @@ function clearOneFilter(key){
 }
 // 初始化
 function init(){
-  // Hide loading skeleton when CDN ready
+  // Hide loading skeleton when CDN ready (with timeout+fallback msg)
   (function hideLoader(){
-    var loader=document.getElementById("appLoader"),bar=document.getElementById("loaderBar");
+    var loader=document.getElementById("appLoader"),bar=document.getElementById("loaderBar"),msg=document.getElementById("loaderMsg");
     if(!loader)return;
     bar.style.width="30%";
+    var start=Date.now(),maxWait=8000,shownWarn=false;
     var iv=setInterval(function(){
+      var elapsed=Date.now()-start;
       bar.style.width=bar.style.width==="30%"?"70%":"30%";
       if(echartsReady()&&typeof XLSX!=="undefined"){
         bar.style.width="100%";
+        if(msg)msg.textContent="✓ 组件加载完成";
         setTimeout(function(){loader.style.opacity="0";setTimeout(function(){if(loader.parentNode)loader.parentNode.removeChild(loader);},300);},200);
         clearInterval(iv);
+      }else if(elapsed>maxWait&&!shownWarn){
+        shownWarn=true;
+        if(msg)msg.innerHTML='<span style="color:#e74c3c">⚠ 组件加载超时</span><br><small>请检查网络或刷新页面</small>';
+        bar.style.background="#e74c3c";
+        setTimeout(function(){clearInterval(iv);if(loader.parentNode)loader.parentNode.removeChild(loader);},5000);
       }
     },300);
-    setTimeout(function(){clearInterval(iv);if(loader.parentNode)loader.parentNode.removeChild(loader);},12000);
+    setTimeout(function(){clearInterval(iv);if(loader&&loader.parentNode)loader.parentNode.removeChild(loader);},15000);
   })();
   // Embedded test mode: ?test=1
   if(window.location.search.indexOf("test=1")!==-1)setTimeout(runTests,500);
@@ -1019,16 +1705,52 @@ function init(){
   document.getElementById("btnClearFilters").addEventListener("click",handleFilterReset);
   document.getElementById("btnUndo").addEventListener("click",undoFilter);
   document.getElementById("btnCompare").addEventListener("click",openCompare);
+
+  // ── v2.5 新增：一键体验 2026 示例数据 ──
+  var btnDemo = document.getElementById("btnLoadDemo");
+  if(btnDemo) {
+    btnDemo.addEventListener("click", function(){
+      finishUpload(DEMO_DATA_2026.slice());
+      toast("⚡ 已载入 2026 示例职位表（含 20 个精选真实岗位）", "success", 3000);
+    });
+  }
+
+  // ── v2.5 新增：候选清单筛选切换 ──
+  var btnFav = document.getElementById("btnFavFilter");
+  if(btnFav) {
+    btnFav.addEventListener("click", function(){
+      STATE.favFilterActive = !STATE.favFilterActive;
+      this.classList.toggle("active", STATE.favFilterActive);
+      this.textContent = STATE.favFilterActive ? "⭐ 全部岗位" : "⭐ 候选清单 (" + STATE.favorites.length + ")";
+      renderTable();
+      if(STATE.favFilterActive && STATE.favorites.length === 0) {
+        toast("提示：点击表格每行开头的 ⭐ 即可添加候选", "warn", 2500);
+      }
+    });
+  }
+
   // ── 分页 ──
   document.getElementById("btnPagePrev").addEventListener("click",function(){goPage(-1);});
   document.getElementById("btnPageNext").addEventListener("click",function(){goPage(1);});
-  // ── 主题恢复 ──
+  // ── 主题恢复（优先共享主题） ──
   var saved=loadSettings();
+  try{var shared=JSON.parse(localStorage.getItem("gwy_shared_prefs")||"{}");if(shared.theme)saved.theme=shared.theme;}catch(e){}
   if(saved.theme){document.documentElement.setAttribute("data-theme",saved.theme);}
   updateThemeIcon();
   document.getElementById("themeToggle").addEventListener("click",toggleTheme);
-  // ── 筛选恢复 ──
-  if(saved.filters&&STATE.raw.length===0)restoreFilters(saved.filters);
+  // ── 筛选恢复：URL参数 > 共享偏好 > 本地存储 ──
+  var urlParams=new URLSearchParams(window.location.search);
+  var filterFromURL={};
+  if(urlParams.get("major"))filterFromURL.major=urlParams.get("major");
+  if(urlParams.get("edu"))filterFromURL.edu=urlParams.get("edu");
+  if(urlParams.get("province"))filterFromURL.province=urlParams.get("province");
+  if(urlParams.get("party"))filterFromURL.party=urlParams.get("party");
+  if(urlParams.get("exp"))filterFromURL.exp=urlParams.get("exp");
+  if(Object.keys(filterFromURL).length){
+    restoreFilters(filterFromURL);
+  }else if(saved.filters&&STATE.raw.length===0){
+    restoreFilters(saved.filters);
+  }
   // ── 自动筛选：输入/选择变更 300ms 防抖触发 ──
   var dt;function df(){clearTimeout(dt);dt=setTimeout(function(){saveFiltersToStorage();handleFilterApply();},150);}
   ["selMajor","selEdu","selParty","selExp","selProvince"].forEach(function(id){
@@ -1039,6 +1761,7 @@ function init(){
   (function(){var ac=document.getElementById("selMajor");if(!ac)return;
     ac.addEventListener("input",function(){showAC(this.value);});
     ac.addEventListener("focus",function(){if(this.value)showAC(this.value);});
+    ac.placeholder="输入专业关键词，支持↑↓选择↲确认";
     ac.addEventListener("blur",hideAC);
     ac.addEventListener("keydown",function(e){
       if(e.key==="ArrowDown"){e.preventDefault();navAC(1);}
@@ -1060,6 +1783,8 @@ function toggleTheme(){
   document.documentElement.setAttribute("data-theme",next);
   updateThemeIcon();
   var s=loadSettings();s.theme=next;saveSettings(s);
+  // 同步到共享偏好
+  try{var p=JSON.parse(localStorage.getItem("gwy_shared_prefs")||"{}");p.theme=next;localStorage.setItem("gwy_shared_prefs",JSON.stringify(p));}catch(e){}
   // 图表重绘以适配新主题
   if(currentTab==="map")renderMap();else if(currentTab==="trend")renderTrend();
 }

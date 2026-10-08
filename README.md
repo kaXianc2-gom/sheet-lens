@@ -1,21 +1,26 @@
-# SheetLens — 智能公考岗位筛选
+# SheetLens — 智能公考岗位筛选与六维深度对比 (v2.5)
 
-单文件 HTML 工具，84KB，双击即用。拖拽上传国考/省考职位表，自动解析、筛选、评分、可视化、对比、导出。
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-2.5.0-orange)](https://github.com/kaXianc2-gom/sheet-lens/releases)
+[![Privacy](https://img.shields.io/badge/privacy-100%25_local-brightgreen)](#)
+[![Zero Install](https://img.shields.io/badge/install-zero-blue)](#)
 
-## 截图
+> 单文件 HTML 工具，双击即用。拖拽上传国考/省考职位表，自动解析、筛选、评分、六维雷达对比、收藏候选池、可视化、导出。数据 100% 留在浏览器本地，零泄露风险。
 
-> 将下方截图保存至 `docs/` 目录：
-> - `docs/upload-map.png` — 上传界面 + 地图热力图
-> - `docs/filter-score.png` — 筛选条件 + 评分结果
-> - `docs/table-compare.png` — 岗位列表 + 对比弹窗
-> - `docs/dark-mode.png` — 暗色模式
+---
 
-![上传与地图](docs/upload-map.png)
-![筛选与评分](docs/filter-score.png)
-![列表与对比](docs/table-compare.png)
-![暗色模式](docs/dark-mode.png)
+## ✨ v2.5 核心亮点
 
-## 功能全景
+* ⚡ **免上传 0 秒体验**：内置 2026 精选真实岗位样例，打开网页一键载入，即刻体验全套可视化与雷达对比。
+* 🕸️ **六维雷达图决策对比 (全新融合)**：吸收整合原 `post-cmp` 资产，支持勾选 2~4 个岗位并排展现多维雷达图，支持**实时滑块调节维度权重**，自动推导 🏆 综合最优报考推荐。
+* ⭐ **我的候选清单 (收藏夹)**：一键收藏心仪岗位，支持专属清单视图与一键导出报考决策表。
+* 📚 **教育部专业大类级联**：智能识别“计算机类/法学类/经济学类”等大类与下属分支专业，彻底告别关键词漏岗。
+* 🗺 **8 大可视化图表**：各省热力图 + 7 维分布图，7 套独立高颜值配色方案。
+* 🌙 **纯本地与暗色模式**：支持一键切换夜间深色主题，全量数据在本地内存计算，离线断网可用。
+
+---
+
+
 
 ### 📂 数据导入
 - 拖拽/点击上传 `.xlsx` / `.xls`
