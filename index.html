@@ -488,6 +488,8 @@ body {
   .btn { padding: 8px 16px; font-size: 13px; }
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 </head>
 <body>
 <!-- Loading skeleton — disappears when CDN ready -->
@@ -497,6 +499,7 @@ body {
 <div style="font-size:18px;font-weight:700;margin-bottom:4px">SheetLens</div>
 <div style="font-size:13px;color:var(--muted)">组件加载中…</div>
 <div id="loaderMsg" style="font-size:12px;color:var(--muted);margin-top:8px">正在加载组件...</div>
+<div style="font-size:11px;color:var(--primary);margin-top:10px;cursor:pointer;text-decoration:underline" onclick="var el=document.getElementById('appLoader');if(el)el.style.display='none';">点击此处直接跳过进入 »</div>
 <div style="width:120px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;overflow:hidden">
 <div id="loaderBar" style="height:100%;width:0%;background:var(--primary);border-radius:2px;transition:width 0.3s"></div>
 </div>
@@ -513,7 +516,7 @@ body {
   </div>
   <span class="data-badge" id="dataBadge">📂 请上传数据</span>
   <button class="theme-toggle" id="themeToggle" title="切换暗色/亮色模式">🌙</button>
-  <a href="gwy-launchpad.html" class="back-to-hub" style="margin-left:8px;font-size:12px;background:rgba(255,255,255,0.15);padding:4px 10px;border-radius:12px;color:#fff;text-decoration:none;white-space:nowrap">← 工具箱</a>
+  <a href="https://github.com/kaXianc2-gom/sheet-lens" target="_blank" class="back-to-hub" style="margin-left:8px;font-size:12px;background:rgba(255,255,255,0.15);padding:4px 10px;border-radius:12px;color:#fff;text-decoration:none;white-space:nowrap">🌟 GitHub</a>
 </div>
 
 <div class="main">
@@ -1511,8 +1514,7 @@ function exportComparisonCSV(items) {
       it.r || ''
     ]);
   });
-  var csv = '﻿' + rows.map(function(row){ return row.map(function(c){ return '"' + String(c).replace(/"/g,'""') + '"'; }).join(','); }).join('
-');
+  var csv = '﻿' + rows.map(function(row){ return row.map(function(c){ return '"' + String(c).replace(/"/g,'""') + '"'; }).join(','); }).join('\n');
   var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
@@ -1676,24 +1678,24 @@ function init(){
   (function hideLoader(){
     var loader=document.getElementById("appLoader"),bar=document.getElementById("loaderBar"),msg=document.getElementById("loaderMsg");
     if(!loader)return;
-    bar.style.width="30%";
-    var start=Date.now(),maxWait=8000,shownWarn=false;
+    if(bar) bar.style.width="60%";
+    function dismiss(){
+      if(!loader) return;
+      if(bar) bar.style.width="100%";
+      loader.style.opacity="0";
+      setTimeout(function(){ if(loader&&loader.parentNode) loader.parentNode.removeChild(loader); },250);
+    }
+    // Safe auto-dismiss: if ready or after 1.2s max, let user in!
+    var start=Date.now();
     var iv=setInterval(function(){
-      var elapsed=Date.now()-start;
-      bar.style.width=bar.style.width==="30%"?"70%":"30%";
-      if(echartsReady()&&typeof XLSX!=="undefined"){
-        bar.style.width="100%";
-        if(msg)msg.textContent="✓ 组件加载完成";
-        setTimeout(function(){loader.style.opacity="0";setTimeout(function(){if(loader.parentNode)loader.parentNode.removeChild(loader);},300);},200);
+      if(typeof echarts !== "undefined" && typeof XLSX !== "undefined"){
         clearInterval(iv);
-      }else if(elapsed>maxWait&&!shownWarn){
-        shownWarn=true;
-        if(msg)msg.innerHTML='<span style="color:#e74c3c">⚠ 组件加载超时</span><br><small>请检查网络或刷新页面</small>';
-        bar.style.background="#e74c3c";
-        setTimeout(function(){clearInterval(iv);if(loader.parentNode)loader.parentNode.removeChild(loader);},5000);
+        dismiss();
+      } else if(Date.now() - start > 1500){
+        clearInterval(iv);
+        dismiss();
       }
-    },300);
-    setTimeout(function(){clearInterval(iv);if(loader&&loader.parentNode)loader.parentNode.removeChild(loader);},15000);
+    }, 150);
   })();
   // Embedded test mode: ?test=1
   if(window.location.search.indexOf("test=1")!==-1)setTimeout(runTests,500);
